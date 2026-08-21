@@ -1,0 +1,153 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/mathlib-initiative/formalization.yaml/main/schema/formalization.schema.json
+# formalization.yaml v0.4. Replace every TEMPLATE value before submitting.
+# Replace a placeholder list with [] only when its adjacent comment permits it;
+# lists described as required must remain nonempty.
+version: "v0.4"
+
+project:
+  name: "MechDesigAdjointfunctor"
+  description: >-
+    A Lean 4 formalisation of the categorical unification of Myerson's Revenue
+    Equivalence Theorem and the Mirrlees Taxation Principle as instances of a single
+    Master Theorem about the adjunction Q ⊣ T between the categories Mech and Alloc.
+  # Required nonempty list of name strings or mappings with a nonempty name.
+  authors:
+    - "Sander Renes"
+  # Required root licence. Keep this in sync with the Apache-2.0 LICENSE file.
+  license: "Apache-2.0"
+  # Required nonempty list of name strings or mappings with a nonempty name.
+  # For a thin wrapper, name people responsible for this submitted wrapper;
+  # submission authorization separately covers the underlying formalization.
+  responsible_maintainers:
+    - "Sander Renes"
+
+# Omit repository for an ordinary project: Palomar treats this submitted
+# repository as the substantive proof development. If this repository is only
+# a thin Comparator wrapper, uncomment and pin the actual formalization in this
+# exact shape:
+# repository:
+#   substantive_formalization:
+#     id: "TEMPLATE: owner/repository or https://github.com/owner/repository"
+#     revision: "TEMPLATE: full 40-character lowercase commit SHA"
+
+classification:
+  # Use 1–2 official arXiv identifiers such as math.LO and 1–8 five-character
+  # MSC 2020 identifiers such as 03B35.
+  arxiv: ["math.OC", "math.CT"]
+  msc2020: ["91B26", "18A40", "91A06"]
+
+sources:
+  # Sources must be nonempty. Every source needs a title and relationship; the
+  # relationship must be exactly formalizes, adapts, independently-proves,
+  # background, or other.
+  # Choose one result origin:
+  # - For a theorem first presented by this formalization, set one source to
+  #   type: original-proof and relationship: other. All additional source
+  #   relationships must be background or other.
+  # - Otherwise, omit type: original-proof and give at least one source a
+  #   formalizes, adapts, or independently-proves relationship. A new proof of
+  #   a known published result is source-based and uses independently-proves.
+  # Type, authors, contributors, id, location, note, license, and
+  # author_endorsement are optional; remove them when genuinely inapplicable.
+  # Authors are bibliographic authors. Contributors record other source roles,
+  # with one name and free-form role such as editor or problem-proposer.
+  # Type is a concise free-text
+  # description such as article, paper, book, formalization, web post, folklore,
+  # conversation, or other. The exact value original-proof is reserved for the
+  # result-origin declaration described above.
+  # Original-result example:
+  # - title: "TEMPLATE: describe the result first presented here"
+  #   type: original-proof
+  #   relationship: other
+  - title: "Optimal Auction Design"
+    authors:
+      - "Roger B. Myerson"
+    type: "article"
+    location: "Mathematics of Operations Research, Vol. 6, No. 1, pp. 58-73, 1981"
+    relationship: "formalizes"
+    id: "DOI:10.1287/moor.6.1.58"
+  - title: "An Exploration in the Theory of Optimum Income Taxation"
+    authors:
+      - "James A. Mirrlees"
+    type: "article"
+    location: "Review of Economic Studies, Vol. 38, No. 2, pp. 175-208, 1971"
+    relationship: "formalizes"
+    id: "DOI:10.2307/2296777"
+  - title: "Categories for the Working Mathematician"
+    authors:
+      - "Saunders Mac Lane"
+    type: "book"
+    location: "Springer-Verlag, 1978"
+    relationship: "background"
+
+related_formalizations:
+  # Remove this field or use [] when none are known.
+  []
+
+status:
+  scope: >-
+    Formalizes the categorical unification of Myerson's Revenue Equivalence Theorem
+    and the Mirrlees Taxation Principle as instances of a single Master Theorem
+    about the adjunction Q ⊣ T. Includes the full proof of the adjunction and
+    the three parts of the Master Theorem.
+  # Count the proof development, excluding Challenge.lean's deliberate sorry.
+  # Replace each count with an unquoted nonnegative integer, for example 0.
+  sorry_count: 0
+  sorry_in_definitions: 0
+  axioms: ["propext", "Quot.sound", "Classical.choice"]
+  # status.main_results is optional. Add it only when a short curated
+  # project-level list is useful; it need not mirror Comparator declarations.
+  main_results:
+    - "Adjunction T ⊣ Q between categories Mech and Alloc"
+    - "Master Theorem: existence, uniqueness, and characterization of BIC-IR mechanisms"
+    - "Revenue Equivalence Theorem (Myerson)"
+    - "Taxation Principle (Mirrlees)"
+
+automation:
+  methods:
+    - method: "manual"
+      models: []
+      framework: "n/a"
+      tool_setup: "Lean 4 with Mathlib"
+      cost:
+        wall_time: "not tracked"
+        spend_usd: "not tracked"
+        hardware: "local machine"
+      prompting_notes: "n/a"
+  spend_usd: "not tracked"
+  notes: "Manual formalization using Lean 4 and Mathlib"
+
+fidelity:
+  divergences: "none known"
+
+review:
+  status: "self-assessed"
+  reviewers:
+    - "none"
+  notes: "Statement audit pending; mathematical review pending"
+
+alignment:
+  namespace: "MechDesign"
+  statements:
+    - source: "Theorem 4.3"
+      lean: "MechDesign.adj_T_Q"
+      module: "Challenge"
+      status: "proved"
+      note: "The adjunction T ⊣ Q"
+    - source: "Theorem 4.5(i)"
+      lean: "MechDesign.masterTheorem_existence"
+      module: "Challenge"
+      status: "proved"
+      note: "Existence and uniqueness of BIC-IR mechanisms"
+    - source: "Theorem 4.5(ii)"
+      lean: "MechDesign.masterTheorem_isomorphism"
+      module: "Challenge"
+      status: "proved"
+      note: "Every BIC-IR mechanism is isomorphic to T(q)"
+    - source: "Theorem 4.5(iii)"
+      lean: "MechDesign.masterTheorem_transferInvariance"
+      module: "Challenge"
+      status: "proved"
+      note: "Transfer invariance"
+
+acknowledgements: "Mathlib developers and contributors"

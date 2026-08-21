@@ -1,0 +1,16 @@
+{
+  "challenge_module": "Challenge",
+  "solution_module": "Solution",
+  "theorem_names": [
+    "MechDesign.masterTheorem_existence",
+    "MechDesign.masterTheorem_isomorphism",
+    "MechDesign.masterTheorem_transferInvariance",
+    "MechDesign.revenueEquivalence",
+    "MechDesign.taxationPrinciple"
+  ],
+  "definition_names": [
+    "MechDesign.adj_T_Q"
+  ],
+  "permitted_axioms": ["propext", "Quot.sound", "Classical.choice"],
+  "enable_nanoda": true
+}
