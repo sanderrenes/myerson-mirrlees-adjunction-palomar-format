@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Use the cargo from ~/.cargo/bin if it exists
+export PATH="$HOME/.cargo/bin:$PATH"
+
 repository_root=$(cd "$(dirname "$0")/.." && pwd)
 cache_root=${PALOMAR_COMPARATOR_CACHE:-"$repository_root/.cache/palomar-comparator"}
 bin_dir="$cache_root/bin"
@@ -9,7 +12,7 @@ lean4export_dir="$cache_root/lean4export"
 nanoda_dir="$cache_root/nanoda"
 
 comparator_commit=68a064109f01c08f47c8edc9f51d6a2bbffaa188
-lean4export_commit=4e7915201d3f9f04470d9eae002fa695f7cdc589
+lean4export_commit=a3e35a584f59b390667db7269cd37fca8575e4bf
 landrun_commit=811cfff51ceaf3d9843708aa6d22e9b84ccac8b4
 nanoda_commit=68d5ca9db226849b41a6fff59d796ff19d0a8840
 
