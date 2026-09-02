@@ -14,10 +14,15 @@ import Mathlib.Topology.Order.DenselyOrdered
 /-!
 # Stage 4: The Master Theorem — Adjunction Q ⊣ T
 
-Proves the abstract categorical Master Theorem: the allocation functor
-**Q : Mech → Alloc** has a right adjoint **T : Alloc → Mech**, and the right
-adjoint is unique up to natural isomorphism.  Every IC-IR mechanism with a given
-allocation rule is isomorphic to `T(q)`.
+Proves the abstract categorical Master Theorem: on the **regular** subcategories the
+transfer functor **T : AllocR → MechR** is left adjoint to the allocation functor
+**Q : MechR → AllocR**.  Every zero-rent BIC-IR mechanism with a given allocation rule is
+isomorphic to `T(q)`.
+
+Regularity is not decoration: an adjunction on all of **Mech** would have to assume the
+envelope conditions at every object, and `Corollaries.no_uniform_lipschitz` /
+`Corollaries.no_uniform_hW` prove that no such assumption can be satisfied in the Myerson
+setting.  See the design note on `adj_T_Q_impl`.
 
 ## Main declarations
 
@@ -26,6 +31,10 @@ allocation rule is isomorphic to `T(q)`.
 * `MechDesign.T_wellDefined` — `T(q)` is BIC-IR for any monotone `q` (Lemma 4.2)
 * `MechDesign.Tmech` — the mechanism object `T(r)`
 * `MechDesign.T` — the Transfer Functor `T : Alloc → Mech` (Definition 4.1)
+* `MechDesign.IsRegularAlloc` — regularity of an allocation rule; what the envelope theorem
+  consumes at an object
+* `MechDesign.AllocR`, `MechDesign.MechR` — the regular subcategories
+* `MechDesign.TR`, `MechDesign.QR` — `T` and `Q` restricted to them
 * `MechDesign.Tmech_surplus_mono` — `T` is monotone on surpluses (single crossing alone)
 * `MechDesign.adj_T_Q` — the adjunction `T ⊣ Q` (Theorem 4.3); `T` is the **left** adjoint
 * `MechDesign.T_initial` — `T(q)` is **initial** in **Mech_q** (Corollary 4.4)
@@ -34,7 +43,9 @@ allocation rule is isomorphic to `T(q)`.
 * `MechDesign.envelope_transfer_shift` — `m.t θ = t*(θ) - V_m(θ_min)` (no boundary cond.)
 * `MechDesign.envelope_transfer_unique` — with `V(θ_min) = 0`, that transfer *is* `t*`
 * `MechDesign.transfer_eq_of_iso` — an iso in **Mech** forces equal transfers
-* `MechDesign.Mech₀`, `MechDesign.equivAllocMech₀` — `Alloc ≌ Mech₀` (Taxation Principle)
+* `MechDesign.zeroRent_of_iso_TQ`, `MechDesign.isIso_counit_iff_zeroRent` — the counit is
+  invertible exactly at zero rent
+* `MechDesign.Mech₀`, `MechDesign.equivAllocMech₀` — `AllocR ≌ Mech₀` (Taxation Principle)
 * `MechDesign.masterTheorem_existence` — existence and uniqueness (Thm 4.5 i)
 * `MechDesign.masterTheorem_isomorphism_impl — every BIC mechanism ≅ `T(q)` (Thm 4.5 ii)
 * `MechDesign.masterTheorem_transferInvariance` — transfer invariance (Thm 4.5 iii)
@@ -540,115 +551,188 @@ instance T_full {A : Type*} [LinearOrder A]
   map_surjective := fun f =>
     ⟨{ h := f.hAlloc }, @Subsingleton.elim _ mechHom_subsingleton _ _⟩
 
-/-! ### 4.2 The Adjunction **T ⊣ Q** (Theorem 4.3) -/
+/-! ### 4.2 Regularity, and the Adjunction **T ⊣ Q** (Theorem 4.3)
 
-/-- **Theorem 4.3: T ⊣ Q** — the transfer functor `T` is **left** adjoint to the
-allocation functor `Q`:
+**Why the adjunction lives on a subcategory.**  The counit `ε_m : T(Q(m)) ⟶ m` *is* the
+envelope theorem at `m`, and the envelope theorem is not available at every BIC-IR mechanism.
+It needs two things that BIC-IR alone does not give: the surplus must be continuous (which
+`surplus_lipschitzOn` derives from IC, but only once `v` is Lipschitz in the type along the
+allocations the mechanism uses), and the envelope integrand must be right-continuous along the
+allocation (`hW`).
 
-  `Hom_Mech(T(r), m) ≅ Hom_Alloc(r, Q(m))`  naturally in `r` and `m`.
+Carrying those two conditions as hypotheses *universally quantified over the objects* — which
+is what an adjunction on all of **Mech** forces — makes the statement **vacuous**.  In the
+Myerson setting no such hypotheses can be satisfied:
 
-*Proof sketch*.  Both categories are thin, so the adjunction is an order-theoretic
-Galois connection and reduces to the two implications
-`T(r) ≤ m  ⟺  r ≤ Q(m)`, with naturality and the triangle identities discharged by
-`Subsingleton.elim` on hom-sets.
-- *unit* `η_r : r ⟶ Q(T(r))`: `Q(T(r)).q = r.q` definitionally, so this is `le_refl`.
+* `Corollaries.no_uniform_lipschitz` — constant allocations are BIC-IR at every level, so no
+  single Lipschitz constant serves every object;
+* `Corollaries.no_uniform_hW` — the *left*-continuous posted price is BIC-IR and its
+  allocation jumps the wrong way at the reserve.
+
+Both are proved, not asserted.  Note the second is not repaired by bounding the allocation
+space: it is a statement about which monotone rules are admissible, not about their size.
+
+The fix is to say what the theorem was always about: the full subcategories of **regular**
+objects, on which the envelope theorem holds.  Regularity is a property of the *allocation
+rule* alone, so it cuts both categories at once and `T`, `Q` restrict with no extra work.
+`Corollaries.postedPriceReg` exhibits the reserve-price auction as an object of `AllocR`, so
+the subcategories — and hence the adjunction — are not empty. -/
+
+/-- **Regularity of an allocation rule** — exactly what the envelope theorem consumes at an
+object, and nothing more.
+
+* `lip`: `v` is Lipschitz in the type along every allocation `r` prescribes.  With IC this
+  gives continuity of the surplus (`surplus_lipschitzOn`).  The constant is existentially
+  quantified, so regularity is a property of `r`, not extra data.
+* `cont`: the envelope integrand is continuous from the upper right at the diagonal — in the
+  Myerson setting, exactly right-continuity of `r.q` (see `PostedPrice.postedPrice_hW`).
+* `int`: the envelope integrand is interval integrable, so the transfer formula means
+  something.
+
+All three are conditions on `r.q` alone.  That is what lets one predicate cut **Mech** and
+**Alloc** simultaneously. -/
+structure IsRegularAlloc {A : Type*} [LinearOrder A]
+    (v : A → ℝ → ℝ) (θ_min : ℝ) (r : MonotoneAlloc A) : Prop where
+  lip : ∃ L : NNReal, ∀ θ' : ℝ, LipschitzOnWith L (v (r.q θ')) (Set.Ici θ_min)
+  cont : ∀ θ, θ_min ≤ θ →
+    ContinuousWithinAt (fun p : ℝ × ℝ => deriv (v (r.q p.1)) p.2)
+      (Set.Ici θ ×ˢ Set.Ici θ) (θ, θ)
+  int : ∀ a b, IntervalIntegrable (typeDerivAlongAlloc v r) MeasureTheory.volume a b
+
+/-- Regularity as a property of objects of **Alloc**. -/
+def RegAlloc {A : Type*} [LinearOrder A] (v : A → ℝ → ℝ) (θ_min : ℝ) :
+    ObjectProperty (MonotoneAlloc A) :=
+  fun r => IsRegularAlloc v θ_min r
+
+/-- Regularity as a property of objects of **Mech**: a mechanism is regular when its
+allocation rule is. -/
+def RegMech {A : Type*} [LinearOrder A] (v : A → ℝ → ℝ) (θ_min : ℝ) :
+    ObjectProperty (ICIRMechanism A v θ_min) :=
+  fun m => IsRegularAlloc v θ_min ⟨m.mech.q, m.hMono⟩
+
+/-- **AllocR** — regular monotone allocation rules. -/
+abbrev AllocR (A : Type*) [LinearOrder A] (v : A → ℝ → ℝ) (θ_min : ℝ) : Type _ :=
+  ObjectProperty.FullSubcategory (RegAlloc v θ_min)
+
+/-- **MechR** — BIC-IR mechanisms with a regular allocation rule. -/
+abbrev MechR (A : Type*) [LinearOrder A] (v : A → ℝ → ℝ) (θ_min : ℝ) : Type _ :=
+  ObjectProperty.FullSubcategory (RegMech v θ_min)
+
+instance allocR_hom_subsingleton {A : Type*} [LinearOrder A]
+    {v : A → ℝ → ℝ} {θ_min : ℝ} {X Y : AllocR A v θ_min} : Subsingleton (X ⟶ Y) :=
+  ⟨fun _ _ => by ext; exact @Subsingleton.elim _ allocHom_subsingleton _ _⟩
+
+instance mechR_hom_subsingleton {A : Type*} [LinearOrder A]
+    {v : A → ℝ → ℝ} {θ_min : ℝ} {X Y : MechR A v θ_min} : Subsingleton (X ⟶ Y) :=
+  ⟨fun _ _ => by ext; exact @Subsingleton.elim _ mechHom_subsingleton _ _⟩
+
+/-- **Q restricted to the regular objects**, `Q_R : MechR ⥤ AllocR`.  Nothing to check:
+regularity of a mechanism *is* regularity of its allocation. -/
+noncomputable def QR {A : Type*} [LinearOrder A]
+    {v : A → ℝ → ℝ} {θ_min : ℝ} {D : Set ℝ} (hSC : SingleCrossing v D) (hD : ∀ θ, θ ∈ D) :
+    MechR A v θ_min ⥤ AllocR A v θ_min :=
+  (RegAlloc v θ_min).lift ((RegMech v θ_min).ι ⋙ Q (θ_min := θ_min) hSC hD)
+    (fun m => m.property)
+
+/-- **T corestricted to the regular objects**, `T_R : AllocR ⥤ MechR`.  `T(r)` has the same
+allocation rule as `r`, so it is regular whenever `r` is — and the integrability `T` needs is
+now supplied by the object itself rather than by a global hypothesis. -/
+noncomputable def TR {A : Type*} [LinearOrder A]
+    {v : A → ℝ → ℝ} {θ_min : ℝ}
+    (hθ_pos : 0 < θ_min) {D : Set ℝ} (hSC : SingleCrossing v D) (hD_Ioi : Set.Ioi 0 ⊆ D)
+    (hdiff : ∀ (a : A), DifferentiableOn ℝ (v a) (Set.Ioi 0))
+    (hintC : ∀ (a : A) b c, IntervalIntegrable (deriv (v a)) MeasureTheory.volume b c) :
+    AllocR A v θ_min ⥤ MechR A v θ_min where
+  obj r := ⟨Tmech hθ_pos hSC hD_Ioi r.obj hdiff r.property.int hintC, r.property⟩
+  map {r r'} f := ObjectProperty.homMk
+    { hAlloc := f.hom.h
+      hSurp := Tmech_surplus_mono hθ_pos hSC hD_Ioi r.obj r'.obj f.hom.h hdiff
+                 r.property.int r'.property.int hintC }
+  map_id _ := by apply @Subsingleton.elim _ mechR_hom_subsingleton
+  map_comp _ _ := by apply @Subsingleton.elim _ mechR_hom_subsingleton
+
+/-- **Theorem 4.3: T ⊣ Q**, on the regular subcategories.
+
+  `Hom_MechR(T(r), m) ≅ Hom_AllocR(r, Q(m))`  naturally in `r` and `m`.
+
+Both categories are thin, so the adjunction is a Galois connection: naturality and the
+triangle identities are `Subsingleton.elim` on hom-sets, and the content is in the two units.
+
+- *unit* `η_r : r ⟶ Q(T(r))`: `Q(T(r)).q = r.q` definitionally, so this is `le_rfl`.
 - *counit* `ε_m : T(Q(m)) ⟶ m`: allocations agree definitionally, and on surpluses
-  `V_{T(Q(m))}(θ) = ∫_{θ_min}^θ D_{m.q} ≤ V_m(θ_min) + ∫_{θ_min}^θ D_{m.q} = V_m(θ)`,
-  which is `surplus_split` together with **individual rationality** `V_m(θ_min) ≥ 0`.
+  `V_{T(Q(m))}(θ) = ∫_{θ_min}^θ D ≤ V_m(θ_min) + ∫_{θ_min}^θ D = V_m(θ)`, which is
+  `surplus_split` — the envelope theorem, available exactly because `m` is regular —
+  together with **individual rationality** `V_m(θ_min) ≥ 0`.
 
-**Variance.**  The adjunction runs `T ⊣ Q`, not `Q ⊣ T`.  Under the surplus order,
-`T(r)` is the *minimal-rent* mechanism with allocation `r.q` — every other BIC-IR
-mechanism in the fiber leaves the lowest type a non-negative rent and therefore sits
-*above* `T(r)`.  So `T(r)` is initial in the fiber, not terminal, and `T` is the left
-adjoint.  IR is exactly what pins the direction: it is used, essentially, in the counit.
+**Variance.**  `T ⊣ Q`, not `Q ⊣ T`: under the surplus order `T(r)` is the minimal-rent
+mechanism in its fiber, so it is initial there and `T` is the left adjoint.  IR is what pins
+the direction — it is used, essentially, in the counit.  How far the counit is from invertible
+is exactly the boundary rent: `isIso_counit_iff_zeroRent`.
+
+**Non-vacuity.**  Every hypothesis here is either a condition on `v` alone (`hSC`, `hdiff`,
+`hintC`, `hD`) or is carried by the objects.  `Corollaries.myersonAdjunction` instantiates the
+whole thing in the Myerson setting and `Corollaries.postedPriceReg` supplies an object.
 
 *Reference*: Theorem 4.3; Mac Lane (1978), Chapter IV. -/
 -- `Adjunction` is a structure (Type), not a Prop, so we use `def` not `theorem`.
+-- Tagged: the hypotheses must be shown satisfiable by a concrete instance, or the statement
+-- is worthless.  `Corollaries.myersonAdjunction` is that instance.
+@[needs_witness]
 noncomputable def adj_T_Q_impl {A : Type*} [LinearOrder A]
     {v : A → ℝ → ℝ} (θ_min : ℝ)
     (hθ_pos : 0 < θ_min) {D : Set ℝ} (hSC : SingleCrossing v D)
     (hD : ∀ θ, θ ∈ D) (hD_Ioi : Set.Ioi 0 ⊆ D)
     (hdiff : ∀ (a : A), DifferentiableOn ℝ (v a) (Set.Ioi 0))
-    (hintC : ∀ (a : A) b c, IntervalIntegrable (deriv (v a)) MeasureTheory.volume b c)
-    (hint : ∀ (r : MonotoneAlloc A) a b,
-      IntervalIntegrable (typeDerivAlongAlloc v r) MeasureTheory.volume a b)
-    -- Only-if envelope condition: every BIC-IR mechanism has the envelope derivative.
-    (L : NNReal)
-    (hvLip : ∀ (m : ICIRMechanism A v θ_min) (θ' : ℝ),
-        LipschitzOnWith L (v (m.mech.q θ')) (Set.Ici θ_min))
-    (hW : ∀ (m : ICIRMechanism A v θ_min) (θ : ℝ), θ_min ≤ θ →
-        ContinuousWithinAt (fun p : ℝ × ℝ => deriv (v (m.mech.q p.1)) p.2)
-            (Set.Ici θ ×ˢ Set.Ici θ) (θ, θ)) :
-    T (θ_min := θ_min) hθ_pos hSC hD_Ioi hdiff hintC hint ⊣ Q (θ_min := θ_min) hSC hD :=
+    (hintC : ∀ (a : A) b c, IntervalIntegrable (deriv (v a)) MeasureTheory.volume b c) :
+    TR (θ_min := θ_min) hθ_pos hSC hD_Ioi hdiff hintC ⊣ QR (θ_min := θ_min) hSC hD :=
   Adjunction.mkOfUnitCounit {
     unit := {
       -- η_r : r ⟶ Q(T(r)); Q(T(r)).q = r.q definitionally.
-      app := fun _ => { h := fun _ => le_refl _ }
-      naturality := fun _ _ _ => @Subsingleton.elim _ allocHom_subsingleton _ _
+      app := fun _ => ObjectProperty.homMk { h := fun _ => le_rfl }
+      naturality := fun _ _ _ => @Subsingleton.elim _ allocR_hom_subsingleton _ _
     }
     counit := {
-      -- ε_m : T(Q(m)) ⟶ m; allocations agree, surpluses ordered by IR.
-      app := fun m =>
-        { hAlloc := fun _ => le_refl _
-          hSurp  := by
+      -- ε_m : T(Q(m)) ⟶ m; allocations agree, surpluses ordered by the envelope theorem + IR.
+      app := fun m => ObjectProperty.homMk
+        { hAlloc := fun _ => le_rfl
+          hSurp := by
             intro θ hθ
-            have hθ_pos' : 0 < θ := lt_of_lt_of_le hθ_pos hθ
-            -- Unfold the composite `(Q ⋙ T).obj m` to `T(Q(m)) = Tmech ⟨m.q, _⟩`.
-            change surplus (Tmech hθ_pos hSC hD_Ioi ⟨m.mech.q, m.hMono⟩ hdiff
-                  (hint ⟨m.mech.q, m.hMono⟩) hintC) θ ≤ surplus m θ
-            -- V_{T(Q(m))}(θ) is the bare envelope integral.
+            obtain ⟨L, hL⟩ := m.property.lip
+            change surplus (Tmech hθ_pos hSC hD_Ioi ⟨m.obj.mech.q, m.obj.hMono⟩ hdiff
+                  m.property.int hintC) θ ≤ surplus m.obj θ
             rw [surplus_Tmech]
-            -- V_m(θ) = V_m(θ_min) + ∫ D, by the envelope theorem.
-            have hsplit := surplus_split hθ_pos ⟨m.mech.q, m.hMono⟩ (hint _) hdiff m
-              (fun _ => rfl) L (hvLip m) (fun θ' hθ' => hW m θ' hθ') θ hθ
-            -- IR: the boundary rent is non-negative.
-            have hIR : (0 : ℝ) ≤ surplus m θ_min := m.hIR
+            have hsplit := surplus_split hθ_pos ⟨m.obj.mech.q, m.obj.hMono⟩
+              m.property.int hdiff m.obj (fun _ => rfl) L hL m.property.cont θ hθ
+            have hIR : (0 : ℝ) ≤ surplus m.obj θ_min := m.obj.hIR
             rw [hsplit]
             linarith }
-      naturality := fun _ _ _ => @Subsingleton.elim _ mechHom_subsingleton _ _
+      naturality := fun _ _ _ => @Subsingleton.elim _ mechR_hom_subsingleton _ _
     }
     left_triangle := by ext; exact @Subsingleton.elim _ mechHom_subsingleton _ _
     right_triangle := by ext; exact @Subsingleton.elim _ allocHom_subsingleton _ _
   }
 
-/-- **Lemma 1.8 (proved)**: `T` preserves all small colimits, being a left adjoint.
-(In the previous formulation this was claimed for `Q`; under the surplus order the
-variance is `T ⊣ Q`, so it is `T` that preserves colimits and `Q` that preserves
-limits — see `Q_preservesLimits`.) -/
-noncomputable instance T_preservesColimits {A : Type*} [LinearOrder A]
+/-- **Lemma 1.8 (proved)**: `T` preserves all small colimits, being a left adjoint. -/
+noncomputable instance TR_preservesColimits {A : Type*} [LinearOrder A]
     {v : A → ℝ → ℝ}
     (θ_min : ℝ) (hθ_pos : 0 < θ_min) {D : Set ℝ} (hSC : SingleCrossing v D)
     (hD : ∀ θ, θ ∈ D) (hD_Ioi : Set.Ioi 0 ⊆ D)
     (hdiff : ∀ (a : A), DifferentiableOn ℝ (v a) (Set.Ioi 0))
-    (hintC : ∀ (a : A) b c, IntervalIntegrable (deriv (v a)) MeasureTheory.volume b c)
-    (hint : ∀ (r : MonotoneAlloc A) a b,
-      IntervalIntegrable (typeDerivAlongAlloc v r) MeasureTheory.volume a b)
-    (L : NNReal)
-    (hvLip : ∀ (m : ICIRMechanism A v θ_min) (θ' : ℝ),
-        LipschitzOnWith L (v (m.mech.q θ')) (Set.Ici θ_min))
-    (hW : ∀ (m : ICIRMechanism A v θ_min) (θ : ℝ), θ_min ≤ θ →
-        ContinuousWithinAt (fun p : ℝ × ℝ => deriv (v (m.mech.q p.1)) p.2)
-            (Set.Ici θ ×ˢ Set.Ici θ) (θ, θ)) :
-    PreservesColimits (T (θ_min := θ_min) hθ_pos hSC hD_Ioi hdiff hintC hint) :=
-  (adj_T_Q_impl θ_min hθ_pos hSC hD hD_Ioi hdiff hintC hint L hvLip hW).leftAdjoint_preservesColimits
+    (hintC : ∀ (a : A) b c, IntervalIntegrable (deriv (v a)) MeasureTheory.volume b c) :
+    PreservesColimits (TR (θ_min := θ_min) hθ_pos hSC hD_Ioi hdiff hintC) :=
+  (adj_T_Q_impl θ_min hθ_pos hSC hD hD_Ioi hdiff hintC).leftAdjoint_preservesColimits
 
 /-- `Q`, as the **right** adjoint, preserves all small limits. -/
-noncomputable instance Q_preservesLimits {A : Type*} [LinearOrder A]
+noncomputable instance QR_preservesLimits {A : Type*} [LinearOrder A]
     {v : A → ℝ → ℝ}
     (θ_min : ℝ) (hθ_pos : 0 < θ_min) {D : Set ℝ} (hSC : SingleCrossing v D)
     (hD : ∀ θ, θ ∈ D) (hD_Ioi : Set.Ioi 0 ⊆ D)
     (hdiff : ∀ (a : A), DifferentiableOn ℝ (v a) (Set.Ioi 0))
-    (hintC : ∀ (a : A) b c, IntervalIntegrable (deriv (v a)) MeasureTheory.volume b c)
-    (hint : ∀ (r : MonotoneAlloc A) a b,
-      IntervalIntegrable (typeDerivAlongAlloc v r) MeasureTheory.volume a b)
-    (L : NNReal)
-    (hvLip : ∀ (m : ICIRMechanism A v θ_min) (θ' : ℝ),
-        LipschitzOnWith L (v (m.mech.q θ')) (Set.Ici θ_min))
-    (hW : ∀ (m : ICIRMechanism A v θ_min) (θ : ℝ), θ_min ≤ θ →
-        ContinuousWithinAt (fun p : ℝ × ℝ => deriv (v (m.mech.q p.1)) p.2)
-            (Set.Ici θ ×ˢ Set.Ici θ) (θ, θ)) :
-    PreservesLimits (Q (θ_min := θ_min) hSC hD) :=
-  (adj_T_Q_impl θ_min hθ_pos hSC hD hD_Ioi hdiff hintC hint L hvLip hW).rightAdjoint_preservesLimits
+    (hintC : ∀ (a : A) b c, IntervalIntegrable (deriv (v a)) MeasureTheory.volume b c) :
+    PreservesLimits (QR (θ_min := θ_min) hSC hD) :=
+  (adj_T_Q_impl θ_min hθ_pos hSC hD hD_Ioi hdiff hintC).rightAdjoint_preservesLimits
+
+
 
 /-! ### 4.3 Initiality of T(q) in **Mech_q** (Corollary 4.4) -/
 
@@ -794,13 +878,45 @@ theorem T_initial {A : Type*} [LinearOrder A]
   intro f g
   exact @Subsingleton.elim _ mechHom_subsingleton _ _
 
+/-- The **zero-rent** property: the lowest type is left no surplus, `V(θ_min) = 0`.
+This is the normalisation the informal statement of `IsIR` always intended (`IsIR` itself
+only asserts `V(θ_min) ≥ 0`). -/
+def ZeroRent {A : Type*} [LinearOrder A]
+    {v : A → ℝ → ℝ} {θ_min : ℝ} : ObjectProperty (ICIRMechanism A v θ_min) :=
+  fun m => surplus m θ_min = 0
+
+/-- `T(r)` has zero rent: at `θ_min` the envelope integral is empty. -/
+lemma zeroRent_Tmech {A : Type*} [LinearOrder A]
+    {v : A → ℝ → ℝ} {θ_min : ℝ}
+    (hθ_pos : 0 < θ_min) {D : Set ℝ} (hSC : SingleCrossing v D) (hD_Ioi : Set.Ioi 0 ⊆ D)
+    (r : MonotoneAlloc A)
+    (hdiff : ∀ (a : A), DifferentiableOn ℝ (v a) (Set.Ioi 0))
+    (hint : ∀ a b, IntervalIntegrable (typeDerivAlongAlloc v r) MeasureTheory.volume a b)
+    (hintC : ∀ (a : A) b c, IntervalIntegrable (deriv (v a)) MeasureTheory.volume b c) :
+    ZeroRent (Tmech hθ_pos hSC hD_Ioi r hdiff hint hintC) := by
+  change surplus (Tmech hθ_pos hSC hD_Ioi r hdiff hint hintC) θ_min = 0
+  rw [surplus_Tmech]; simp
+
 /-! ### 4.4 The Master Theorem (Theorem 4.5) -/
 
-/-- **Theorem 4.5(i) — Existence and Uniqueness**: For any monotone allocation rule `r`
-and boundary condition `V(θ_min) = 0`, there exists a **unique** BIC-IR mechanism
-with allocation `r.q`.  It is the explicit mechanism `T(r)`.
+/-- **Theorem 4.5(i) — Existence and Uniqueness**: for any regular monotone allocation rule
+`r`, the mechanism `T(r)` is BIC-IR, has allocation `r.q`, leaves the lowest type no rent, and
+its transfer is the envelope formula.  It is the **only** such mechanism: any BIC-IR mechanism
+with allocation `r.q` and zero rent has the same transfer on the physical domain.
 
-Uniqueness: terminal objects are unique up to unique isomorphism (Mac Lane, Sec. III.1).
+**Why uniqueness is stated on `[θ_min, ∞)` and not as `∃!`.**  `IsIC` and `IsIR` constrain a
+mechanism only at types `≥ θ_min`, so two objects of **Mech** may differ freely below `θ_min`
+and both satisfy every hypothesis here.  Structural uniqueness is therefore *false*, and an
+`∃!` can only be recovered by pinning the transfer everywhere in the statement — which makes
+the uniqueness clause a restatement of its own hypothesis rather than a theorem.  What is true,
+and what Theorem 4.5(i) means, is uniqueness of the transfer on the physical domain; that is
+what is proved here, and the work is done by the envelope theorem
+(`envelope_transfer_unique`, hence by IC) rather than by structure eta.
+
+The hypotheses `hvLip` and `hW` are conditions on the *fiber* — they mention only `r.q`, which
+every mechanism in the fiber shares — so unlike the object-quantified versions discussed at
+`adj_T_Q_impl` they are satisfiable: `PostedPrice` discharges both.
+
 *Reference*: Theorem 4.5(i). -/
 theorem masterTheorem_existence_impl {A : Type*} [LinearOrder A]
     {v : A → ℝ → ℝ} {θ_min : ℝ}
@@ -808,21 +924,26 @@ theorem masterTheorem_existence_impl {A : Type*} [LinearOrder A]
     (r : MonotoneAlloc A)
     (hdiff : ∀ (a : A), DifferentiableOn ℝ (v a) (Set.Ioi 0))
     (hint : ∀ a b, IntervalIntegrable (typeDerivAlongAlloc v r) MeasureTheory.volume a b)
-    (hintC : ∀ (a : A) b c, IntervalIntegrable (deriv (v a)) MeasureTheory.volume b c) :
-    ∃! (m : ICIRMechanism A v θ_min),
-      m ∈ MechWithAlloc r ∧
-      ∀ θ, m.mech.t θ = transferFormula v θ_min (typeDerivAlongAlloc v r) r.q θ := by
-  refine ⟨Tmech hθ_pos hSC hD_Ioi r hdiff hint hintC, ⟨?_, ?_⟩, ?_⟩
-  · intro θ; rfl
-  · intro θ; rfl
-  · -- Uniqueness: requires the only-if envelope theorem (terminality of Tmech).
-    rintro m ⟨hm_alloc, hm_t⟩
-    obtain ⟨⟨mq, mt⟩, mIC, mIR⟩ := m
-    simp only [MechWithAlloc, Set.mem_setOf_eq] at hm_alloc
-    have hq : mq = r.q := funext hm_alloc
-    have ht : mt = transferFormula v θ_min (typeDerivAlongAlloc v r) r.q := funext hm_t
-    subst hq; subst ht
-    simp only [Tmech]
+    (hintC : ∀ (a : A) b c, IntervalIntegrable (deriv (v a)) MeasureTheory.volume b c)
+    (L : NNReal)
+    (hvLip : ∀ θ' : ℝ, LipschitzOnWith L (v (r.q θ')) (Set.Ici θ_min))
+    (hW : ∀ θ, θ_min ≤ θ →
+      ContinuousWithinAt (fun p : ℝ × ℝ => deriv (v (r.q p.1)) p.2)
+        (Set.Ici θ ×ˢ Set.Ici θ) (θ, θ)) :
+    ∃ m : ICIRMechanism A v θ_min,
+      (m ∈ MechWithAlloc r ∧ ZeroRent m ∧
+        ∀ θ, m.mech.t θ = transferFormula v θ_min (typeDerivAlongAlloc v r) r.q θ) ∧
+      ∀ m' : ICIRMechanism A v θ_min, m' ∈ MechWithAlloc r → ZeroRent m' →
+        ∀ θ, θ_min ≤ θ → m'.mech.t θ = m.mech.t θ := by
+  refine ⟨Tmech hθ_pos hSC hD_Ioi r hdiff hint hintC,
+    ⟨fun _ => rfl, zeroRent_Tmech hθ_pos hSC hD_Ioi r hdiff hint hintC, fun _ => rfl⟩, ?_⟩
+  intro m' hm' hzero θ hθ
+  -- Uniqueness is the only-if envelope theorem: IC forces the transfer once the rent is fixed.
+  refine envelope_transfer_unique hθ_pos hSC hD_Ioi r hdiff hint hintC m' hm' L
+    (fun θ' => by rw [hm' θ']; exact hvLip θ') hW ?_ θ hθ
+  have h : surplus m' θ_min = 0 := hzero
+  simp only [surplus] at h
+  linarith
 
 /-- **An isomorphism in Mech forces equal transfers.**
 
@@ -938,8 +1059,13 @@ theorem masterTheorem_isomorphism_impl {A : Type*} [LinearOrder A]
 
 /-- **Theorem 4.5(iii) — Transfer Invariance**, via the categorical route.
 
-Any two BIC-IR mechanisms with the same allocation rule and the **same boundary rent**
-generate the same expected transfer on `[θ_min, ∞)`.
+Any two BIC-IR mechanisms with the same allocation rule and the **same boundary rent** charge
+the same transfer at **every** physical type.
+
+This is pointwise, not in expectation.  The expected-revenue form is the corollary
+`transferInvariance_integral` below, which integrates this against any finite measure — no
+distributional assumption enters, which is precisely why the pointwise statement is the one
+worth proving.
 
 *Proof*: they are isomorphic in **Mech** (`mech_iso_of_sameAlloc_sameRent`), and an
 isomorphism in **Mech** forces equal transfers (`transfer_eq_of_iso`).  The adjunction's
@@ -966,13 +1092,23 @@ theorem masterTheorem_transferInvariance_impl {A : Type*} [LinearOrder A]
       ContinuousWithinAt (fun p : ℝ × ℝ => deriv (v (r.q p.1)) p.2)
         (Set.Ici θ ×ˢ Set.Ici θ) (θ, θ))
     -- RELAXED: equal boundary rent, not zero boundary rent.
-    (hV₀ : surplus m₁ θ_min = surplus m₂ θ_min)
-    (μ : MeasureTheory.Measure ℝ) [IsFiniteMeasure μ] :
-    ∫ θ in Set.Ici θ_min, m₁.mech.t θ ∂μ = ∫ θ in Set.Ici θ_min, m₂.mech.t θ ∂μ := by
+    (hV₀ : surplus m₁ θ_min = surplus m₂ θ_min) :
+    ∀ θ, θ_min ≤ θ → m₁.mech.t θ = m₂.mech.t θ := by
   obtain ⟨i⟩ := mech_iso_of_sameAlloc_sameRent hθ_pos r hint hdiff m₁ m₂ hm₁ hm₂
     L₁ hvLip₁ L₂ hvLip₂ hW hV₀
-  exact MeasureTheory.setIntegral_congr_fun measurableSet_Ici
-    fun θ hθ => transfer_eq_of_iso i θ hθ
+  exact fun θ hθ => transfer_eq_of_iso i θ hθ
+
+/-- **Expected-revenue form.**  Integrate `masterTheorem_transferInvariance_impl` against any
+finite measure on types.  The measure is arbitrary and carries no hypotheses — it plays no role
+beyond packaging, which is the point: revenue equivalence here is not a distributional
+statement. -/
+theorem transferInvariance_integral {A : Type*} [LinearOrder A]
+    {v : A → ℝ → ℝ} {θ_min : ℝ}
+    {m₁ m₂ : ICIRMechanism A v θ_min}
+    (h : ∀ θ, θ_min ≤ θ → m₁.mech.t θ = m₂.mech.t θ)
+    (μ : MeasureTheory.Measure ℝ) [IsFiniteMeasure μ] :
+    ∫ θ in Set.Ici θ_min, m₁.mech.t θ ∂μ = ∫ θ in Set.Ici θ_min, m₂.mech.t θ ∂μ :=
+  MeasureTheory.setIntegral_congr_fun measurableSet_Ici fun θ hθ => h θ hθ
 
 /-- **Transfer invariance, routed through `T`** — the categorical derivation.
 
@@ -1003,16 +1139,14 @@ theorem transferInvariance_via_T {A : Type*} [LinearOrder A]
         (Set.Ici θ ×ˢ Set.Ici θ) (θ, θ))
     -- Both mechanisms are normalised: zero rent at the lowest type.
     (hBC₁ : v (m₁.mech.q θ_min) θ_min = m₁.mech.t θ_min)
-    (hBC₂ : v (m₂.mech.q θ_min) θ_min = m₂.mech.t θ_min)
-    (μ : MeasureTheory.Measure ℝ) [IsFiniteMeasure μ] :
-    ∫ θ in Set.Ici θ_min, m₁.mech.t θ ∂μ = ∫ θ in Set.Ici θ_min, m₂.mech.t θ ∂μ := by
+    (hBC₂ : v (m₂.mech.q θ_min) θ_min = m₂.mech.t θ_min) :
+    ∀ θ, θ_min ≤ θ → m₁.mech.t θ = m₂.mech.t θ := by
   obtain ⟨i₁⟩ := masterTheorem_isomorphism_impl hθ_pos hSC hD_Ioi r hdiff hint hintC m₁ hm₁
     L₁ hvLip₁ hW hBC₁
   obtain ⟨i₂⟩ := masterTheorem_isomorphism_impl hθ_pos hSC hD_Ioi r hdiff hint hintC m₂ hm₂
     L₂ hvLip₂ hW hBC₂
   -- m₁ ≅ T(r) ≅ m₂
-  exact MeasureTheory.setIntegral_congr_fun measurableSet_Ici
-    fun θ hθ => transfer_eq_of_iso (i₁ ≪≫ i₂.symm) θ hθ
+  exact fun θ hθ => transfer_eq_of_iso (i₁ ≪≫ i₂.symm) θ hθ
 
 /-! ### 4.6 The normalized subcategory **Mech₀** and the equivalence `Alloc ≃ Mech₀`
 
@@ -1025,7 +1159,9 @@ The three-move architecture of the Master Theorem:
 
 * **Move 2 (the comonad).**  `T ∘ Q` strips the rent: `surplus (T (Q m)) θ_min = 0`
   (`zeroRent_TQ`).  Its counit `ε_m : T(Q(m)) ⟶ m` is the "remove the lowest type's rent"
-  map, and is an isomorphism exactly on the zero-rent objects.
+  map, and is an isomorphism exactly on the zero-rent objects — proved in both directions as
+  `isIso_counit_iff_zeroRent`, so `Mech₀` is the *invertibility locus* of `ε` and not merely a
+  subcategory where invertibility happens to hold.
 
 * **Move 3 (normalized).**  On the full subcategory `Mech₀` of zero-rent mechanisms, the
   counit is an isomorphism, so `T ⊣ Q` upgrades to an **adjoint equivalence**
@@ -1036,31 +1172,6 @@ Note the division of labour.  The content lives in Move 1 (that `T` exists at al
 `T_wellDefined`) and Move 2 (that the counit is iso precisely at zero rent).  Once those
 are in place the equivalence of Move 3 is cheap, as equivalences always are. -/
 
-/-- The **zero-rent** property: the lowest type is left no surplus, `V(θ_min) = 0`.
-This is the normalisation the informal statement of `IsIR` always intended (`IsIR` itself
-only asserts `V(θ_min) ≥ 0`). -/
-def ZeroRent {A : Type*} [LinearOrder A]
-    {v : A → ℝ → ℝ} {θ_min : ℝ} : ObjectProperty (ICIRMechanism A v θ_min) :=
-  fun m => surplus m θ_min = 0
-
-/-- **Mech₀** — the full subcategory of BIC-IR mechanisms that leave the lowest type no
-rent.  This is the essential image of `T`. -/
-abbrev Mech₀ (A : Type*) [LinearOrder A]
-    (v : A → ℝ → ℝ) (θ_min : ℝ) : Type _ :=
-  ObjectProperty.FullSubcategory (ZeroRent (A := A) (v := v) (θ_min := θ_min))
-
-/-- `T(r)` has zero rent: at `θ_min` the envelope integral is empty. -/
-lemma zeroRent_Tmech {A : Type*} [LinearOrder A]
-    {v : A → ℝ → ℝ} {θ_min : ℝ}
-    (hθ_pos : 0 < θ_min) {D : Set ℝ} (hSC : SingleCrossing v D) (hD_Ioi : Set.Ioi 0 ⊆ D)
-    (r : MonotoneAlloc A)
-    (hdiff : ∀ (a : A), DifferentiableOn ℝ (v a) (Set.Ioi 0))
-    (hint : ∀ a b, IntervalIntegrable (typeDerivAlongAlloc v r) MeasureTheory.volume a b)
-    (hintC : ∀ (a : A) b c, IntervalIntegrable (deriv (v a)) MeasureTheory.volume b c) :
-    ZeroRent (Tmech hθ_pos hSC hD_Ioi r hdiff hint hintC) := by
-  change surplus (Tmech hθ_pos hSC hD_Ioi r hdiff hint hintC) θ_min = 0
-  rw [surplus_Tmech]; simp
-
 /-- **Move 2**: the comonad `T ∘ Q` strips the rent — `T(Q(m))` always has zero rent,
 whatever rent `m` had. -/
 lemma zeroRent_TQ {A : Type*} [LinearOrder A]
@@ -1068,50 +1179,143 @@ lemma zeroRent_TQ {A : Type*} [LinearOrder A]
     (hθ_pos : 0 < θ_min) {D : Set ℝ} (hSC : SingleCrossing v D) (hD_Ioi : Set.Ioi 0 ⊆ D)
     (hdiff : ∀ (a : A), DifferentiableOn ℝ (v a) (Set.Ioi 0))
     (hintC : ∀ (a : A) b c, IntervalIntegrable (deriv (v a)) MeasureTheory.volume b c)
-    (hint : ∀ (r : MonotoneAlloc A) a b,
-      IntervalIntegrable (typeDerivAlongAlloc v r) MeasureTheory.volume a b)
-    (hD : ∀ θ, θ ∈ D) (m : ICIRMechanism A v θ_min) :
-    ZeroRent ((Q (θ_min := θ_min) hSC hD ⋙ T hθ_pos hSC hD_Ioi hdiff hintC hint).obj m) :=
-  zeroRent_Tmech hθ_pos hSC hD_Ioi ⟨m.mech.q, m.hMono⟩ hdiff
-    (hint ⟨m.mech.q, m.hMono⟩) hintC
+    (hD : ∀ θ, θ ∈ D) (m : MechR A v θ_min) :
+    ZeroRent (((QR (θ_min := θ_min) hSC hD ⋙ TR hθ_pos hSC hD_Ioi hdiff hintC).obj m).obj) :=
+  zeroRent_Tmech hθ_pos hSC hD_Ioi ⟨m.obj.mech.q, m.obj.hMono⟩ hdiff m.property.int hintC
 
-/-- **`T` corestricted to `Mech₀`**: `T₀ : Alloc ⥤ Mech₀`. -/
-noncomputable def T₀ {A : Type*} [LinearOrder A]
+/-! #### The counit is invertible **exactly** at zero rent
+
+`zeroRent_TQ` says the comonad `T ∘ Q` always strips the rent; these two say the counit
+`ε_m : T(Q m) ⟶ m` — the stripping map — is an isomorphism precisely when there was no rent to
+strip.  That is what cuts `Mech₀` out of `MechR` as the invertibility locus of `ε`, and it is
+why the adjunction upgrades to an equivalence there and nowhere else. -/
+
+/-- **Zero rent is necessary for the counit to be invertible.**
+
+An iso `T(Q m) ≅ m` forces equal transfers (`transfer_eq_of_iso`), in particular at `θ_min`;
+the allocations agree by construction; and `T(Q m)` has zero rent (`zeroRent_Tmech`).  So `m`
+has zero rent too. -/
+theorem zeroRent_of_iso_TQ {A : Type*} [LinearOrder A]
     {v : A → ℝ → ℝ} {θ_min : ℝ}
     (hθ_pos : 0 < θ_min) {D : Set ℝ} (hSC : SingleCrossing v D) (hD_Ioi : Set.Ioi 0 ⊆ D)
     (hdiff : ∀ (a : A), DifferentiableOn ℝ (v a) (Set.Ioi 0))
     (hintC : ∀ (a : A) b c, IntervalIntegrable (deriv (v a)) MeasureTheory.volume b c)
-    (hint : ∀ (r : MonotoneAlloc A) a b,
-      IntervalIntegrable (typeDerivAlongAlloc v r) MeasureTheory.volume a b) :
-    MonotoneAlloc A ⥤ Mech₀ A v θ_min where
-  obj r := ⟨Tmech hθ_pos hSC hD_Ioi r hdiff (hint r) hintC,
-            zeroRent_Tmech hθ_pos hSC hD_Ioi r hdiff (hint r) hintC⟩
-  map f := ObjectProperty.homMk ((T hθ_pos hSC hD_Ioi hdiff hintC hint).map f)
-  map_id _ := by ext; apply @Subsingleton.elim _ mechHom_subsingleton
-  map_comp _ _ := by ext; apply @Subsingleton.elim _ mechHom_subsingleton
+    (m : ICIRMechanism A v θ_min)
+    (hint : ∀ a b, IntervalIntegrable
+      (typeDerivAlongAlloc v ⟨m.mech.q, m.hMono⟩) MeasureTheory.volume a b)
+    (i : Tmech hθ_pos hSC hD_Ioi ⟨m.mech.q, m.hMono⟩ hdiff hint hintC ≅ m) :
+    ZeroRent m := by
+  have ht := transfer_eq_of_iso i θ_min le_rfl
+  have h0 : surplus (Tmech hθ_pos hSC hD_Ioi ⟨m.mech.q, m.hMono⟩ hdiff hint hintC) θ_min = 0 :=
+    zeroRent_Tmech hθ_pos hSC hD_Ioi ⟨m.mech.q, m.hMono⟩ hdiff hint hintC
+  change surplus m θ_min = 0
+  simp only [surplus] at h0 ⊢
+  rw [← ht]
+  exact h0
 
-/-- **`Q` restricted to `Mech₀`**: `Q₀ : Mech₀ ⥤ Alloc` (forget the rent condition, then
+/-- **The counit of `T ⊣ Q` is an isomorphism exactly on the zero-rent objects.**
+
+Both directions are cheap once the categories are known to be thin — what they rest on is
+`transfer_eq_of_iso` one way (an iso in **Mech** carries the economics) and
+`mechIso_of_sameAlloc_sameRent` the other.  This is the precise sense in which `Mech₀` is *the*
+place where `T ⊣ Q` becomes an equivalence: it is the invertibility locus of `ε`, not merely a
+subcategory where invertibility happens to hold. -/
+theorem isIso_counit_iff_zeroRent {A : Type*} [LinearOrder A]
+    {v : A → ℝ → ℝ} (θ_min : ℝ)
+    (hθ_pos : 0 < θ_min) {D : Set ℝ} (hSC : SingleCrossing v D)
+    (hD : ∀ θ, θ ∈ D) (hD_Ioi : Set.Ioi 0 ⊆ D)
+    (hdiff : ∀ (a : A), DifferentiableOn ℝ (v a) (Set.Ioi 0))
+    (hintC : ∀ (a : A) b c, IntervalIntegrable (deriv (v a)) MeasureTheory.volume b c)
+    (m : MechR A v θ_min) :
+    IsIso ((adj_T_Q_impl θ_min hθ_pos hSC hD hD_Ioi hdiff hintC).counit.app m) ↔
+      ZeroRent m.obj := by
+  constructor
+  · -- invertible ⟹ zero rent: transport the inverse down to `Mech` and apply `zeroRent_of_iso_TQ`
+    intro hiso
+    refine zeroRent_of_iso_TQ hθ_pos hSC hD_Ioi hdiff hintC m.obj m.property.int
+      { hom := ⟨fun _ => le_rfl, ?_⟩
+        inv := (inv ((adj_T_Q_impl θ_min hθ_pos hSC hD hD_Ioi hdiff hintC).counit.app m)).hom
+        hom_inv_id := @Subsingleton.elim _ mechHom_subsingleton _ _
+        inv_hom_id := @Subsingleton.elim _ mechHom_subsingleton _ _ }
+    exact ((adj_T_Q_impl θ_min hθ_pos hSC hD hD_Ioi hdiff hintC).counit.app m).hom.hSurp
+  · -- zero rent ⟹ invertible: the reverse arrow exists, and thin categories do the rest
+    intro hzero
+    have hrev : m ⟶ (QR (θ_min := θ_min) hSC hD ⋙
+        TR hθ_pos hSC hD_Ioi hdiff hintC).obj m :=
+      ObjectProperty.homMk
+        { hAlloc := fun _ => le_rfl
+          hSurp := by
+            intro θ hθ
+            have hiso := mechIso_of_sameAlloc_sameRent hθ_pos ⟨m.obj.mech.q, m.obj.hMono⟩
+              m.property.int hdiff m.obj
+              (Tmech hθ_pos hSC hD_Ioi ⟨m.obj.mech.q, m.obj.hMono⟩ hdiff m.property.int hintC)
+              (fun _ => rfl) (fun _ => rfl)
+              m.property.lip.choose m.property.lip.choose_spec
+              m.property.lip.choose m.property.lip.choose_spec
+              m.property.cont
+              (by
+                rw [zeroRent_Tmech hθ_pos hSC hD_Ioi ⟨m.obj.mech.q, m.obj.hMono⟩ hdiff
+                  m.property.int hintC]
+                exact hzero)
+            exact hiso.hom.hSurp θ hθ }
+    exact ⟨hrev, @Subsingleton.elim _ mechR_hom_subsingleton _ _,
+      @Subsingleton.elim _ mechR_hom_subsingleton _ _⟩
+
+/-- The objects of **Mech₀** — regular *and* zero-rent.  Regularity is what makes the
+envelope theorem available (see the design note on `adj_T_Q_impl`); zero rent is the
+normalisation. -/
+def RegZeroRent {A : Type*} [LinearOrder A] (v : A → ℝ → ℝ) (θ_min : ℝ) :
+    ObjectProperty (ICIRMechanism A v θ_min) :=
+  fun m => RegMech v θ_min m ∧ ZeroRent m
+
+/-- **Mech₀** — the full subcategory of regular BIC-IR mechanisms that leave the lowest type
+no rent.  This is the essential image of `T`. -/
+abbrev Mech₀ (A : Type*) [LinearOrder A]
+    (v : A → ℝ → ℝ) (θ_min : ℝ) : Type _ :=
+  ObjectProperty.FullSubcategory (RegZeroRent v θ_min)
+
+instance mech₀_hom_subsingleton {A : Type*} [LinearOrder A]
+    {v : A → ℝ → ℝ} {θ_min : ℝ} {X Y : Mech₀ A v θ_min} : Subsingleton (X ⟶ Y) :=
+  ⟨fun _ _ => by ext; exact @Subsingleton.elim _ mechHom_subsingleton _ _⟩
+
+/-- **`T` corestricted to `Mech₀`**: `T₀ : AllocR ⥤ Mech₀`. -/
+noncomputable def T₀ {A : Type*} [LinearOrder A]
+    {v : A → ℝ → ℝ} {θ_min : ℝ}
+    (hθ_pos : 0 < θ_min) {D : Set ℝ} (hSC : SingleCrossing v D) (hD_Ioi : Set.Ioi 0 ⊆ D)
+    (hdiff : ∀ (a : A), DifferentiableOn ℝ (v a) (Set.Ioi 0))
+    (hintC : ∀ (a : A) b c, IntervalIntegrable (deriv (v a)) MeasureTheory.volume b c) :
+    AllocR A v θ_min ⥤ Mech₀ A v θ_min where
+  obj r := ⟨Tmech hθ_pos hSC hD_Ioi r.obj hdiff r.property.int hintC,
+            r.property, zeroRent_Tmech hθ_pos hSC hD_Ioi r.obj hdiff r.property.int hintC⟩
+  map f := ObjectProperty.homMk ((TR hθ_pos hSC hD_Ioi hdiff hintC).map f).hom
+  map_id _ := by apply @Subsingleton.elim _ mech₀_hom_subsingleton
+  map_comp _ _ := by apply @Subsingleton.elim _ mech₀_hom_subsingleton
+
+/-- **`Q` restricted to `Mech₀`**: `Q₀ : Mech₀ ⥤ AllocR` (forget the rent condition, then
 forget the transfer). -/
 noncomputable def Q₀ {A : Type*} [LinearOrder A]
     {v : A → ℝ → ℝ} {θ_min : ℝ} {D : Set ℝ} (hSC : SingleCrossing v D) (hD : ∀ θ, θ ∈ D) :
-    Mech₀ A v θ_min ⥤ MonotoneAlloc A :=
-  (ZeroRent (A := A) (v := v) (θ_min := θ_min)).ι ⋙ Q (θ_min := θ_min) hSC hD
+    Mech₀ A v θ_min ⥤ AllocR A v θ_min :=
+  (RegAlloc v θ_min).lift ((RegZeroRent v θ_min).ι ⋙ Q (θ_min := θ_min) hSC hD)
+    (fun m => m.property.1)
 
 /-- **Move 3 — the Taxation Principle as an equivalence of categories.**
 
-`Alloc ≌ Mech₀`: monotone allocation rules and zero-rent BIC-IR mechanisms are the same
-thing, up to natural isomorphism.  Consequently `T₀ ⊣ Q₀` *and* `Q₀ ⊣ T₀` — the two
-functors are adjoint in both directions, which is exactly what an adjoint equivalence
+`AllocR ≌ Mech₀`: regular monotone allocation rules and regular zero-rent BIC-IR mechanisms
+are the same thing, up to natural isomorphism.  Consequently `T₀ ⊣ Q₀` *and* `Q₀ ⊣ T₀` — the
+two functors are adjoint in both directions, which is exactly what an adjoint equivalence
 gives.
 
-- The unit `𝟭 Alloc ≅ Q₀ ∘ T₀` is the identity: `Q(T(r)).q = r.q` definitionally.
-- The counit `T₀ ∘ Q₀ ≅ 𝟭 Mech₀` is where the work is: for a *zero-rent* `m`, stripping
-  the rent changes nothing, so `T(Q(m)) ≅ m` by `mechIso_of_sameAlloc_sameRent` (same
-  allocation by construction, same rent — both zero, one by `zeroRent_Tmech` and one by
-  membership in `Mech₀`).
+- The unit `𝟭 AllocR ≅ Q₀ ∘ T₀` is the identity: `Q(T(r)).q = r.q` definitionally.
+- The counit `T₀ ∘ Q₀ ≅ 𝟭 Mech₀` is where the work is: for a *zero-rent* `m`, stripping the
+  rent changes nothing, so `T(Q(m)) ≅ m` by `mechIso_of_sameAlloc_sameRent` (same allocation
+  by construction, same rent — both zero, one by `zeroRent_Tmech` and one by membership in
+  `Mech₀`).
 
-On all of **Mech** this fails: the counit is only a *morphism* `T(Q(m)) ⟶ m`, and it is
-invertible precisely when `m` has zero rent.  That is the content of the normalisation.
+On all of **MechR** this fails: the counit is only a *morphism* `T(Q(m)) ⟶ m`, and it is
+invertible precisely when `m` has zero rent — both directions in `isIso_counit_iff_zeroRent`.
+That is the content of the normalisation: `Mech₀` is exactly where `ε` is invertible, so it is
+exactly where the adjunction can upgrade.
 
 *Reference*: Hammond (1979), Theorem 1; Rochet (1985), Proposition 1. -/
 noncomputable def equivAllocMech₀ {A : Type*} [LinearOrder A]
@@ -1119,36 +1323,27 @@ noncomputable def equivAllocMech₀ {A : Type*} [LinearOrder A]
     (hθ_pos : 0 < θ_min) {D : Set ℝ} (hSC : SingleCrossing v D)
     (hD : ∀ θ, θ ∈ D) (hD_Ioi : Set.Ioi 0 ⊆ D)
     (hdiff : ∀ (a : A), DifferentiableOn ℝ (v a) (Set.Ioi 0))
-    (hintC : ∀ (a : A) b c, IntervalIntegrable (deriv (v a)) MeasureTheory.volume b c)
-    (hint : ∀ (r : MonotoneAlloc A) a b,
-      IntervalIntegrable (typeDerivAlongAlloc v r) MeasureTheory.volume a b)
-    (L : NNReal)
-    (hvLip : ∀ (m : ICIRMechanism A v θ_min) (θ' : ℝ),
-        LipschitzOnWith L (v (m.mech.q θ')) (Set.Ici θ_min))
-    (hW : ∀ (m : ICIRMechanism A v θ_min) (θ : ℝ), θ_min ≤ θ →
-        ContinuousWithinAt (fun p : ℝ × ℝ => deriv (v (m.mech.q p.1)) p.2)
-            (Set.Ici θ ×ˢ Set.Ici θ) (θ, θ)) :
-    MonotoneAlloc A ≌ Mech₀ A v θ_min where
-  functor := T₀ hθ_pos hSC hD_Ioi hdiff hintC hint
+    (hintC : ∀ (a : A) b c, IntervalIntegrable (deriv (v a)) MeasureTheory.volume b c) :
+    AllocR A v θ_min ≌ Mech₀ A v θ_min where
+  functor := T₀ hθ_pos hSC hD_Ioi hdiff hintC
   inverse := Q₀ hSC hD
   unitIso := NatIso.ofComponents
     (fun _ => Iso.refl _)
-    (fun _ => @Subsingleton.elim _ allocHom_subsingleton _ _)
+    (fun _ => @Subsingleton.elim _ allocR_hom_subsingleton _ _)
   counitIso := NatIso.ofComponents
-    (fun m => by
-      -- Strip-the-rent is the identity on a zero-rent mechanism.
-      refine ObjectProperty.isoMk _ (mechIso_of_sameAlloc_sameRent hθ_pos
-        ⟨m.obj.mech.q, m.obj.hMono⟩ (hint _) hdiff
-        (Tmech hθ_pos hSC hD_Ioi ⟨m.obj.mech.q, m.obj.hMono⟩ hdiff
-          (hint _) hintC) m.obj
-        (fun _ => rfl) (fun _ => rfl)
-        L (hvLip (Tmech hθ_pos hSC hD_Ioi ⟨m.obj.mech.q, m.obj.hMono⟩ hdiff (hint _) hintC))
-        L (hvLip m.obj)
-        (fun θ hθ => hW m.obj θ hθ) ?_)
+    -- Strip-the-rent is the identity on a zero-rent mechanism.  The Lipschitz constant is
+    -- chosen from the object's regularity; the iso does not depend on which constant.
+    (fun m => ObjectProperty.isoMk _ (mechIso_of_sameAlloc_sameRent hθ_pos
+      ⟨m.obj.mech.q, m.obj.hMono⟩ m.property.1.int hdiff
+      (Tmech hθ_pos hSC hD_Ioi ⟨m.obj.mech.q, m.obj.hMono⟩ hdiff m.property.1.int hintC)
+      m.obj (fun _ => rfl) (fun _ => rfl)
+      m.property.1.lip.choose m.property.1.lip.choose_spec
+      m.property.1.lip.choose m.property.1.lip.choose_spec
+      m.property.1.cont
       -- both rents are zero: T(Q(m)) by construction, m by membership in Mech₀
-      rw [zeroRent_Tmech hθ_pos hSC hD_Ioi ⟨m.obj.mech.q, m.obj.hMono⟩ hdiff (hint _) hintC,
-        m.property])
-    (fun _ => by ext; apply @Subsingleton.elim _ mechHom_subsingleton)
-  functor_unitIso_comp _ := by ext; apply @Subsingleton.elim _ mechHom_subsingleton
+      (by rw [zeroRent_Tmech hθ_pos hSC hD_Ioi ⟨m.obj.mech.q, m.obj.hMono⟩ hdiff
+            m.property.1.int hintC, m.property.2])))
+    (fun _ => @Subsingleton.elim _ mech₀_hom_subsingleton _ _)
+  functor_unitIso_comp _ := @Subsingleton.elim _ mech₀_hom_subsingleton _ _
 
 end MechDesign

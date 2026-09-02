@@ -25,8 +25,10 @@ optimal nonlinear income taxation model, recovering the **Taxation Principle**
 * SC-M (Spence-Mirrlees condition): MRS between income and consumption decreasing in `θ`.
 * IC characterises the net-income schedule via the envelope formula (Lemma 3.1):
   `V(θ) = V(θ_min) + ∫_{θ_min}^θ ∂v/∂s (y(s), s) ds`.
-* The **Taxation Principle**: any IC mechanism can be implemented by a unique
-  nonlinear tax schedule `T(y) = y - c(y)`.
+* The **Taxation Principle**: any IC mechanism can be implemented by a nonlinear tax
+  schedule on income, unique on the incomes the mechanism assigns.  It is proved in
+  `Framework.lean` (`MechDesign.taxationPrinciple_impl`), for one mechanism and from IC
+  alone, since it needs nothing from this file.
 
 ## References
 
@@ -172,8 +174,11 @@ paired with a monotone income assignment `y(θ)`, yields an IC mechanism with
 noncomputable def mirrleesRent (vθ_partial : ℝ → ℝ) (V₀ θ_min θ : ℝ) : ℝ :=
   V₀ + ∫ s in θ_min..θ, vθ_partial s
 
-/-- The tax schedule induced by income assignment `y(θ)` and consumption `c(θ)`:
-`T(y) = y - c` on the range of `y`. -/
+/-- The tax *bill* of type `θ` under income assignment `y(θ)` and consumption `c(θ)`.
+
+Note this is indexed by **type**, not by income, so it is not the schedule of the taxation
+principle — for that see `MechDesign.taxSchedule` (`Framework.lean`), which is a function of
+the allocation and is what `MechDesign.taxationPrinciple_impl` produces. -/
 noncomputable def taxSchedule (y c : ℝ → ℝ) (θ : ℝ) : ℝ := y θ - c θ
 
 /-- **Lemma 3.1 (Taxation Principle — if direction)**: if `y(θ)` is monotone and `V`
@@ -307,11 +312,14 @@ lemma mirrlees_unique_from_IC (v : ℝ → ℝ → ℝ) (vθ_partial : ℝ → �
       intervalIntegral.integral_eq_sub_of_hasDerivAt (fun s _ => hEnv s) (hint θ_min θ)
     linarith [hFTC, hIR]
 
-/-- **Remark (Taxation Principle)**: any IC direct mechanism `(y(θ), c(θ))` can be
-implemented by a unique nonlinear tax schedule `T : Y → ℝ` defined by `T(y) = y - c`
-on the range of `y`.  Two IC mechanisms with the same `y(θ)` and the same `V(θ_min)`
-produce identical tax schedules.
-*Reference*: Hammond (1979); Rochet (1985). -/
+/-- **Two IC mechanisms with the same income schedule and the same rent levy the same tax.**
+
+This is revenue equivalence in the Mirrlees setting, not the taxation principle: it compares
+two mechanisms.  (The taxation principle proper is `MechDesign.taxationPrinciple_impl`.)  It is
+also superseded by `Corollaries.mirrlees_transferInvariance_impl`, which needs only a *right*
+derivative of the surplus; the two-sided `hEnv` assumed here is unsatisfiable for a mechanism
+with a kink — see `Corollaries.PostedPrice.postedPrice_not_hasDerivAt`.
+*Reference*: Myerson (1981), Theorem 2, transposed; Hammond (1979); Rochet (1985). -/
 theorem taxation_principle (v : ℝ → ℝ → ℝ) (vθ_partial : ℝ → ℝ)
     (V₀ θ_min : ℝ) (y₁ y₂ t₁ t₂ : ℝ → ℝ)
     (_hIC₁ : IsIC v θ_min ⟨y₁, t₁⟩) (hIR₁ : v (y₁ θ_min) θ_min - t₁ θ_min = V₀)

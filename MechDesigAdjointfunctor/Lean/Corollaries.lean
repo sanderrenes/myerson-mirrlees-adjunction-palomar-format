@@ -13,8 +13,12 @@ economic settings to recover the classical results as special cases.
 
 * `MechDesign.Corollaries.revenueEquivalence` — Corollary 5.1: Myerson's Revenue
   Equivalence Theorem is an instance of Theorem 4.5(iii).
-* `MechDesign.Corollaries.taxationPrinciple` — Corollary 5.2: the Mirrlees Taxation
-  Principle is an instance of Theorem 4.5(iii).
+* `MechDesign.Corollaries.mirrlees_transferInvariance_impl` — Corollary 5.2: revenue
+  equivalence in the Mirrlees setting, the same instance of Theorem 4.5(iii) with a different
+  value function.
+* The **Taxation Principle** itself is not here: it is a statement about a single mechanism and
+  costs only IC, so it lives with the primitives as `MechDesign.taxationPrinciple_impl`
+  (`Framework.lean`).
 
 ## The proof chain
 
@@ -162,12 +166,14 @@ theorem myerson_transferFormula_eq_myersonTransfer
 
 /-- **Corollary 5.1 — Myerson Revenue Equivalence Theorem**.
 
-In the Myerson auction setting (type space `[0,1]`, value function `v(q,θ) = θ*q`,
-allocation probabilities `q ∈ [0,1]`), any two BIC-IR mechanisms
-`M₁ = (q, t₁)` and `M₂ = (q, t₂)` with the **same allocation rule** `q` and
-boundary condition `Vᵢ(0) = 0` satisfy:
+In the Myerson auction setting (value function `v(q,θ) = θ*q`, allocation probabilities
+`q ∈ [0,1]`), any two BIC-IR mechanisms `M₁ = (q, t₁)` and `M₂ = (q, t₂)` with the **same
+allocation rule** `q` and the same boundary rent satisfy
 
-  `𝔼[t₁(θ)] = 𝔼[t₂(θ)]`
+  `t₁(θ) = t₂(θ)`  for every `θ ≥ θ_min`,
+
+hence also `𝔼[t₁] = 𝔼[t₂]` for any finite measure on types (`transferInvariance_integral`).
+The pointwise form is what the envelope theorem gives; the expectation is packaging.
 
 *Proof*: Instantiate `masterTheorem_transferInvariance_impl with the Myerson value function.
 SC holds by `myerson_singleCrossing`.  The expected transfer equals
@@ -202,11 +208,10 @@ theorem revenueEquivalence_impl
         (Set.Ici θ ×ˢ Set.Ici θ) (θ, θ))
     -- RELAXED boundary condition: the two mechanisms leave the lowest type the SAME rent.
     -- (Revenue equivalence needs equal rent, not zero rent.)
-    (hV₀ : surplus m₁ θ_min = surplus m₂ θ_min)
-    (μ : MeasureTheory.Measure ℝ) [IsFiniteMeasure μ] :
-    ∫ θ in Set.Ici θ_min, m₁.mech.t θ ∂μ = ∫ θ in Set.Ici θ_min, m₂.mech.t θ ∂μ :=
+    (hV₀ : surplus m₁ θ_min = surplus m₂ θ_min) :
+    ∀ θ, θ_min ≤ θ → m₁.mech.t θ = m₂.mech.t θ :=
   masterTheorem_transferInvariance_impl hθ_pos q₀ hint Myerson.myerson_vDiff
-    m₁ m₂ hm₁_alloc hm₂_alloc L₁ hvLip₁ L₂ hvLip₂ hW hV₀ μ
+    m₁ m₂ hm₁_alloc hm₂_alloc L₁ hvLip₁ L₂ hvLip₂ hW hV₀
 
 /-- **Myerson expected revenue formula**: for any BIC-IR mechanism with allocation `q`
 and `V(0) = 0`, expected revenue equals expected virtual surplus.
@@ -227,28 +232,23 @@ theorem myerson_revenueFormula (q : ℝ → ℝ) (F f : ℝ → ℝ)
 
 /-! ### 5.2 Taxation Principle (Corollary 5.2) -/
 
-/-- **Corollary 5.2 — Mirrlees Taxation Principle**.
+/-- **Revenue equivalence in the Mirrlees setting** — the taxation counterpart of
+`revenueEquivalence_impl`, and the same theorem with `v := mirrleesValue`.
 
-In the Mirrlees taxation setting (type space `[θ_min, θ_max]`, quasilinear value
-function `v(y, θ)`), any IC mechanism `(y(θ), c(θ))` with `V(θ_min) = 0` can be
-implemented by a **unique** nonlinear tax schedule `T : Y → ℝ` defined by
-`T(y) = y - c(y)` on the range of `y(θ)`.
-
-Moreover, any two IC mechanisms with the **same income assignment** `y(θ)` and the same
-`V(θ_min)` produce identical tax schedules and hence the same expected tax revenue.
-
-*Proof*: Instantiate `masterTheorem_transferInvariance_impl with the Mirrlees value function.
+Two IC mechanisms with the same income assignment `y(θ)` and the same rent at the lowest type
+levy the same tax at every type.  This used to be called `taxationPrinciple_impl`, which
+overstated it: it compares **two** mechanisms and never produces a tax schedule.  The taxation
+principle proper — one mechanism, a schedule `T` on incomes with `t(θ) = T(y(θ))` — is
+`MechDesign.taxationPrinciple_impl` (`Framework.lean`), and it needs nothing but IC.
 
 **On the hypotheses.**  Notice what is *absent*: the Spence–Mirrlees conditions
 (`0 < g'`, `StrictMono h`, `StrictMono (l ↦ l · g' l)`) are **not** assumed, because transfer
 invariance does not need them.  Single crossing is what makes `T` a functor and what forces
-monotonicity of the allocation; it plays no role in revenue equivalence, which is a statement
-about IC alone.  Carrying SC here would have overstated what the theorem requires.  (`h` and
-`g` are still assumed differentiable — that is genuinely used, via `mirrlees_vDiff`.)
+monotonicity of the allocation; it plays no role here.  (`h` and `g` are still assumed
+differentiable — that is genuinely used, via `mirrlees_vDiff`.)
 
-*Reference*: Hammond (1979), Theorem 1; Rochet (1985), Proposition 1; Mirrlees (1971),
-Eq. (27). -/
-theorem taxationPrinciple_impl
+*Reference*: Myerson (1981), Theorem 2, transposed; Mirrlees (1971), Eq. (27). -/
+theorem mirrlees_transferInvariance_impl
     (h g : ℝ → ℝ) (hh : Differentiable ℝ h) (hg : Differentiable ℝ g)
     (θ_min : ℝ) (hθ_pos : 0 < θ_min)
     (q₀ : MonotoneAlloc ℝ)
@@ -277,11 +277,10 @@ theorem taxationPrinciple_impl
         (Set.Ici θ ×ˢ Set.Ici θ) (θ, θ))
     -- RELAXED boundary condition: identical rent at the lowest type (a common `V₀`),
     -- matching what `mirrlees_unique_from_IC` already assumed.
-    (hV₀ : surplus m₁ θ_min = surplus m₂ θ_min)
-    (μ : MeasureTheory.Measure ℝ) [IsFiniteMeasure μ] :
-    ∫ θ in Set.Ici θ_min, m₁.mech.t θ ∂μ = ∫ θ in Set.Ici θ_min, m₂.mech.t θ ∂μ :=
+    (hV₀ : surplus m₁ θ_min = surplus m₂ θ_min) :
+    ∀ θ, θ_min ≤ θ → m₁.mech.t θ = m₂.mech.t θ :=
   masterTheorem_transferInvariance_impl hθ_pos q₀ hint (Mirrlees.mirrlees_vDiff h g hh hg)
-    m₁ m₂ hm₁_alloc hm₂_alloc L₁ hvLip₁ L₂ hvLip₂ hW hV₀ μ
+    m₁ m₂ hm₁_alloc hm₂_alloc L₁ hvLip₁ L₂ hvLip₂ hW hV₀
 
 /-! ### 5.2b The posted price — why the envelope hypothesis must be one-sided
 
@@ -454,6 +453,185 @@ theorem postedPrice_hW (θ : ℝ) :
     · simp [alloc, if_neg (not_le.mpr hp)]
 
 end PostedPrice
+
+/-! ### 5.4 Why the adjunction lives on the regular subcategory
+
+Two theorems, not two remarks.  They show that the object-quantified regularity hypotheses an
+adjunction on all of **Mech** would need are **unsatisfiable** in the Myerson setting — so a
+`T ⊣ Q` carrying them would be vacuously true exactly where it is supposed to say something.
+This is what `adj_T_Q_impl` avoids by cutting to `AllocR`/`MechR`, and it is why regularity is
+a property of objects rather than a global hypothesis. -/
+
+/-- Every constant allocation, with no transfer, is a BIC-IR mechanism. -/
+noncomputable def constMech (θ_min a : ℝ) (ha : 0 ≤ a) (hθ : 0 ≤ θ_min) :
+    ICIRMechanism Myerson.MyersonAlloc Myerson.myersonValue θ_min where
+  mech := ⟨fun _ => a, fun _ => 0⟩
+  hMono := fun _ _ _ => le_rfl
+  hIC := by intro θ θ' _ _; simp [Myerson.myersonValue]
+  hIR := by simp [IsIR, Myerson.myersonValue]; positivity
+
+/-- **No single Lipschitz constant serves every object of Mech.**
+
+`v(a, θ) = θ·a` is `|a|`-Lipschitz in the type and no better, and `constMech` makes every
+level `a` the allocation of some BIC-IR mechanism.  So a hypothesis of the form
+"`∃ L, ∀ m, ∀ θ', LipschitzOnWith L (v (m.q θ')) …`" — which is what an adjunction on all of
+**Mech** must assume to get continuity of the surplus at every object — is false. -/
+theorem no_uniform_lipschitz (θ_min : ℝ) (hθ : 0 < θ_min) :
+    ¬ ∃ L : NNReal, ∀ (m : ICIRMechanism Myerson.MyersonAlloc Myerson.myersonValue θ_min)
+        (θ' : ℝ), LipschitzOnWith L (Myerson.myersonValue (m.mech.q θ')) (Set.Ici θ_min) := by
+  rintro ⟨L, h⟩
+  have hm := h (constMech θ_min (L + 1) (by positivity) hθ.le) θ_min
+  have hd := hm.dist_le_mul θ_min Set.self_mem_Ici (θ_min + 1)
+    (Set.mem_Ici.mpr (by linarith))
+  simp only [Real.dist_eq, Myerson.myersonValue, constMech] at hd
+  have heq : |θ_min * ((L : ℝ) + 1) - (θ_min + 1) * ((L : ℝ) + 1)| = (L : ℝ) + 1 := by
+    rw [show θ_min * ((L : ℝ) + 1) - (θ_min + 1) * ((L : ℝ) + 1) = -((L : ℝ) + 1) by ring,
+      abs_neg, abs_of_nonneg (by positivity)]
+  rw [heq] at hd
+  simp at hd
+  linarith [hd]
+
+/-- The **left**-continuous posted price: sell iff the type *strictly* clears the reserve.
+Same surplus `max (θ - p) 0` as `PostedPrice.alloc`, but the allocation jumps at `p` from the
+left instead of from the right. -/
+noncomputable def leftAlloc (p : ℝ) : ℝ → Myerson.MyersonAlloc :=
+  fun θ => if θ ≤ p then 0 else 1
+
+/-- Its transfer, chosen so that the surplus is again `max (θ - p) 0`. -/
+noncomputable def leftTransfer (p : ℝ) : ℝ → ℝ :=
+  fun θ => θ * leftAlloc p θ - max (θ - p) 0
+
+lemma leftAlloc_mono {p : ℝ} : Monotone (leftAlloc p) := by
+  intro a b hab
+  by_cases hb : b ≤ p
+  · simp [leftAlloc, if_pos (hab.trans hb), if_pos hb]
+  · by_cases ha : a ≤ p <;> simp [leftAlloc, ha, hb]
+
+/-- The left-continuous posted price is a genuine BIC-IR mechanism: its surplus is the same
+convex kinked function as the ordinary posted price's, and its allocation is a subgradient of
+that function at every type (including at the reserve, where `0 ∈ ∂V(p)`). -/
+noncomputable def leftPostedPrice (θ_min p : ℝ) :
+    ICIRMechanism Myerson.MyersonAlloc Myerson.myersonValue θ_min where
+  mech := ⟨leftAlloc p, leftTransfer p⟩
+  hMono := leftAlloc_mono
+  hIC := by
+    intro θ θ' _ _
+    simp only [Myerson.myersonValue, leftTransfer, leftAlloc]
+    by_cases h1 : θ ≤ p <;> by_cases h2 : θ' ≤ p <;>
+      simp only [if_pos, h1, h2, if_false] <;>
+      rcases max_cases (θ - p) 0 with ⟨e1, _⟩ | ⟨e1, _⟩ <;>
+      rcases max_cases (θ' - p) 0 with ⟨e2, _⟩ | ⟨e2, _⟩ <;>
+      simp only [e1, e2] <;> nlinarith
+  hIR := by
+    simp only [IsIR, Myerson.myersonValue, leftTransfer]
+    have : (0 : ℝ) ≤ max (θ_min - p) 0 := le_max_right _ _
+    linarith
+
+/-- **`hW` cannot be assumed at every object of Mech either.**
+
+In the Myerson setting `hW` is right-continuity of the allocation rule, and
+`leftPostedPrice` is a BIC-IR mechanism whose allocation jumps *up* just to the right of the
+reserve while taking the lower value at it.  So the envelope hypothesis, quantified over
+objects, is unsatisfiable.
+
+Note what this rules out: unlike `no_uniform_lipschitz`, this failure is **not** repaired by
+bounding the allocation space — the allocation here already takes only the values `0` and `1`.
+It is a statement about which monotone rules **Mech** admits, and the only fix is to admit
+fewer of them. -/
+theorem no_uniform_hW (θ_min : ℝ) :
+    ¬ ∀ (m : ICIRMechanism Myerson.MyersonAlloc Myerson.myersonValue θ_min) (θ : ℝ),
+        θ_min ≤ θ →
+        ContinuousWithinAt
+          (fun x : ℝ × ℝ => deriv (Myerson.myersonValue (m.mech.q x.1)) x.2)
+          (Set.Ici θ ×ˢ Set.Ici θ) (θ, θ) := by
+  intro h
+  have hcw := h (leftPostedPrice θ_min θ_min) θ_min le_rfl
+  have hfun : (fun x : ℝ × ℝ =>
+      deriv (Myerson.myersonValue ((leftPostedPrice θ_min θ_min).mech.q x.1)) x.2)
+      = fun x : ℝ × ℝ => leftAlloc θ_min x.1 := funext fun x => myerson_deriv _ _
+  rw [hfun, Metric.continuousWithinAt_iff] at hcw
+  obtain ⟨δ, hδ, hd⟩ := hcw 1 one_pos
+  have hmem : ((θ_min + δ / 2, θ_min) : ℝ × ℝ) ∈ Set.Ici θ_min ×ˢ Set.Ici θ_min :=
+    Set.mem_prod.mpr ⟨Set.mem_Ici.mpr (by linarith), Set.mem_Ici.mpr le_rfl⟩
+  have hdist : dist ((θ_min + δ / 2, θ_min) : ℝ × ℝ) (θ_min, θ_min) < δ := by
+    have hhalf : (0 : ℝ) < δ / 2 := half_pos hδ
+    rw [Prod.dist_eq]
+    refine max_lt ?_ ?_
+    · rw [Real.dist_eq, show θ_min + δ / 2 - θ_min = δ / 2 by ring, abs_of_pos hhalf]
+      linarith
+    · simpa using hδ
+  have hlt := hd hmem hdist
+  rw [show leftAlloc θ_min θ_min = 0 by simp [leftAlloc],
+    show leftAlloc θ_min (θ_min + δ / 2) = 1 by simp [leftAlloc]; linarith [half_pos hδ]] at hlt
+  simp at hlt
+
+/-! ### 5.5 The adjunction, instantiated
+
+The counterexamples above say what **cannot** be done.  These say what can: the Myerson
+setting satisfies every hypothesis `adj_T_Q_impl` actually takes, and the reserve-price
+auction is an object of the regular subcategory — so `T ⊣ Q` is a statement about a category
+with mechanisms in it. -/
+
+/-- The Myerson envelope integrand along any monotone allocation is that allocation, hence
+monotone, hence interval integrable.  No hypothesis needed. -/
+theorem myerson_int (r : MonotoneAlloc Myerson.MyersonAlloc) (a b : ℝ) :
+    IntervalIntegrable (typeDerivAlongAlloc Myerson.myersonValue r) MeasureTheory.volume a b := by
+  have h : typeDerivAlongAlloc Myerson.myersonValue r = r.q := funext (myerson_typeDeriv r)
+  rw [h]
+  exact r.hMono.intervalIntegrable
+
+/-- `deriv (v a)` is the constant `a`, so it is interval integrable — the `hintC` hypothesis
+of the framework, discharged for Myerson. -/
+theorem myerson_intC (a : Myerson.MyersonAlloc) (b c : ℝ) :
+    IntervalIntegrable (deriv (Myerson.myersonValue a)) MeasureTheory.volume b c := by
+  have h : deriv (Myerson.myersonValue a) = fun _ : ℝ => a := funext (myerson_deriv a)
+  rw [h]
+  exact intervalIntegrable_const
+
+/-- **A Myerson allocation is regular** as soon as it is bounded by `1` (an allocation
+*probability*) and right-continuous.  Both are conditions the economics supplies. -/
+theorem myersonRegular {θ_min : ℝ} (r : MonotoneAlloc Myerson.MyersonAlloc)
+    (hbdd : ∀ θ, |r.q θ| ≤ 1)
+    (hrc : ∀ θ, θ_min ≤ θ →
+      ContinuousWithinAt (fun p : ℝ × ℝ => deriv (Myerson.myersonValue (r.q p.1)) p.2)
+        (Set.Ici θ ×ˢ Set.Ici θ) (θ, θ)) :
+    IsRegularAlloc Myerson.myersonValue θ_min r where
+  lip := ⟨1, fun θ' => myerson_lipschitz (hbdd θ') _⟩
+  cont := hrc
+  int := myerson_int r
+
+/-- **The reserve-price auction is an object of `AllocR`.**  Bounded by construction,
+right-continuous by `PostedPrice.postedPrice_hW`, integrable by monotonicity.  This is the
+witness that the regular subcategory is not empty — and it is the mechanism the two-sided
+envelope hypothesis used to exclude (`PostedPrice.postedPrice_not_hasDerivAt`). -/
+theorem postedPriceReg {θ_min : ℝ} (p : ℝ) :
+    IsRegularAlloc Myerson.myersonValue θ_min
+      ⟨PostedPrice.alloc p, PostedPrice.alloc_mono⟩ :=
+  myersonRegular _ (fun θ => by simp only [PostedPrice.alloc]; split_ifs <;> norm_num)
+    (fun θ _ => PostedPrice.postedPrice_hW θ)
+
+/-- `T(r)` at the posted price: an object of `MechR`, i.e. of the category the adjunction is
+about. -/
+noncomputable def postedPriceObj {θ_min : ℝ} (p : ℝ) :
+    AllocR Myerson.MyersonAlloc Myerson.myersonValue θ_min :=
+  ⟨⟨PostedPrice.alloc p, PostedPrice.alloc_mono⟩, postedPriceReg p⟩
+
+/-- **The adjunction `T ⊣ Q`, instantiated in the Myerson setting.**
+
+**Witness for `adj_T_Q_impl`:** This declaration proves that `adj_T_Q_impl` is not vacuous by
+instantiating it with the Myerson value function. Every hypothesis is discharged from properties
+of `Myerson.myersonValue` alone — single crossing, differentiability, integrability of `deriv (v a)` —
+and `postedPriceObj` supplies a concrete object. Together with `no_uniform_lipschitz` and `no_uniform_hW`
+this demonstrates that the regular subcategory formulation is the correct one.
+
+*Reference*: Myerson (1981), Theorem 2. -/
+@[witness_for MechDesign.adj_T_Q_impl]
+noncomputable def myersonAdjunction (θ_min : ℝ) (hθ_pos : 0 < θ_min) :
+    TR (v := Myerson.myersonValue) (θ_min := θ_min) hθ_pos Myerson.myerson_singleCrossing
+        (Set.subset_univ _) Myerson.myerson_vDiff myerson_intC ⊣
+      QR (θ_min := θ_min) Myerson.myerson_singleCrossing (fun θ => Set.mem_univ θ) :=
+  adj_T_Q_impl θ_min hθ_pos Myerson.myerson_singleCrossing (fun θ => Set.mem_univ θ)
+    (Set.subset_univ _) Myerson.myerson_vDiff myerson_intC
 
 /-! ### 5.3 Conditions for failure — where each hypothesis is load-bearing
 

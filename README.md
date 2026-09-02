@@ -1,160 +1,249 @@
-# PalomarTemplate
+# MechDesigAdjointfunctor
 
-[![CI](https://github.com/PalomarRegistry/PalomarTemplate/actions/workflows/ci.yml/badge.svg)](https://github.com/PalomarRegistry/PalomarTemplate/actions/workflows/ci.yml)
+A Lean 4 / Mathlib formalization of the **categorical unification of Myerson's
+Revenue Equivalence Theorem and the Mirrlees Taxation Principle** as instances of
+a single Master Theorem about the adjunction `T ⊣ Q` between a category of
+allocation rules and a category of incentive-compatible mechanisms.
 
-A best-practice starting point for a
-[Palomar](https://palomar-registry.org/) submission. Use this as a
-GitHub template, replace the toy theorem and all `TEMPLATE` metadata, and keep
-the separation between the human-auditable statement and the proof.
+- **Namespace:** `MechDesign`
+- **Toolchain:** `leanprover/lean4:v4.30.0`
+- **Mathlib:** pinned at `c5ea00351c28e24afc9f0f84379aa41082b1188f` (see `lakefile.toml` / `lake-manifest.json`)
+- **Permitted axioms:** `propext`, `Quot.sound`, `Classical.choice`
+- **License:** Apache-2.0
 
-## Repository map
+This repository follows the [Palomar](https://palomar-registry.org/) submission
+layout: a small human-auditable statement surface (`Challenge.lean`), a proof
+surface with identical signatures (`Solution.lean`), and the full development in
+`MechDesigAdjointfunctor/`. `comparator.json` names the six declarations that
+Comparator checks are stated identically in both surfaces and proved with only
+the permitted axioms.
 
-- `Challenge.lean` is the small statement surface a reader audits.
-- `Solution.lean` connects the same declaration to the completed proof.
-- `PalomarTemplate/` contains the full proof development.
-- `comparator.json` tells Comparator which declarations must match.
-- `formalization.yaml` records the public result description, provenance,
-  authorship, automation, fidelity, and review information.
-- `LICENSE` contains the Apache License 2.0 terms declared by
-  `project.license`.
-- `docbuild/` is the recommended nested doc-gen4 project.
-- `scripts/verify-comparator.sh` runs pinned Comparator, lean4export, NanoDa,
-  and Landrun revisions using the checked-in `comparator.json`, which enables
-  the independent NanoDa replay; `scripts/landrun-wrapper.sh` preserves
-  lean4export's command delimiter when invoked through Landrun's current CLI
-  and refuses any Comparator request to switch off part of the sandbox.
+> The stock PalomarTemplate README and the working notes that produced this
+> adaptation are kept in `planning/` (git-ignored) for reference.
 
-The root uses `lakefile.toml`, a supported stable Lean toolchain, and committed
-Lake manifests. The verifier reads `lean-toolchain` and checks that its pinned
-lean4export revision targets the same toolchain. When changing that exporter
-pin, review whether Comparator and NanoDa remain compatible with its export
-format. GitHub Actions builds the Lean project with `lean-action`, generates API
-documentation with doc-gen4, and independently checks the advertised statement
-with Comparator. Actions and verification tools are pinned to immutable
-commits.
+---
 
-## Start a real project
+## Repository structure
 
-1. Click **Use this template** on GitHub and clone the new repository.
-2. Rename `PalomarTemplate` in the Lake package, module directory, namespace,
-   Comparator declaration, and metadata.
-3. Replace the example library, `Challenge.lean`, and `Solution.lean`.
-   Keep `Challenge.lean` as the small statement-only surface, with one `sorry`
-   for each advertised declaration; put the proofs in `Solution.lean`, where
-   Comparator checks them against those statements. The proof-status counts in
-   `formalization.yaml` exclude the deliberate Challenge `sorry`s.
-4. Replace every `TEMPLATE` value in `formalization.yaml`. Values that might
-   otherwise look like plausible defaults—including repository role,
-   classifications, proof counts, automation method, and review status—are
-   deliberately invalid until you choose them. Replace a placeholder list with
-   an empty list only where its adjacent comment permits that; lists described
-   as required must remain nonempty.
-   Write `project.description` as the concise public registry abstract for the
-   formalization as a whole. It should let a mathematical reader identify the
-   subject and principal result families; it is not an inventory of Comparator
-   declarations, and the README and Challenge documentation can carry the
-   fuller account. `status.main_results` is optional: add it only when a short
-   curated project-level list is useful, not to mirror Comparator declarations.
-   The `sources` list must remain nonempty. Every source relationship must be
-   exactly `formalizes`, `adapts`, `independently-proves`, `background`, or
-   `other`. Choose one result origin: for a result first presented by the
-   formalization, include a descriptive source with `type: original-proof` and
-   `relationship: other`; every additional source must use `background` or
-   `other`. Otherwise, omit `type: original-proof`, and give at least one cited
-   mathematical source a `formalizes`, `adapts`, or `independently-proves`
-   relationship. A new proof of a known published result is source-based and
-   uses `independently-proves`, not `original-proof`.
+```
+MechDesigAdjointfunctor.lean            root module, re-exports MechDesigAdjointfunctor.Basic
+MechDesigAdjointfunctor/
+├── Basic.lean                          re-exports the whole development
+└── Lean/
+    ├── Linters.lean                    @[needs_witness] / @[witness_for] attributes
+    ├── Framework.lean                  Stages 1–3: mechanisms, the two thin categories,
+    │                                   the elementary taxation principle
+    ├── MyersonSetting.lean             auction environment: v(a,θ) = θ·a
+    ├── MirrleesSetting.lean            taxation environment: v(y,θ) = θ·h(y) − g(y/θ)
+    ├── MasterTheorem.lean              Stage 4: envelope theorem, regular subcategories,
+    │                                   T ⊣ Q, the three parts of the Master Theorem
+    └── Corollaries.lean                Revenue Equivalence and the Mirrlees instance,
+                                        vacuity theorems, the posted-price witness
 
-   Every source needs a title and relationship. Its `type`, authors,
-   contributors, identifier, location, licence, and endorsement may be removed
-   when genuinely inapplicable. Use authors only for bibliographic authorship;
-   use contributors with a name and free-form role for credits such as editors
-   and problem proposers. A retained type is a concise free-text description
-   such as `article`, `paper`, `book`, `formalization`, `web post`,
-   `folklore`, or `conversation`. The exact value `original-proof` is
-   reserved for the result-origin declaration above. Set
-   `repository.role` to `substantive-development` and omit
-   `substantive_formalization`, or set it to `thin-wrapper` and provide the
-   underlying `owner/repository` or `https://github.com/owner/repository` URL
-   plus its full 40-character lowercase commit SHA. Remove
-   `related_formalizations` or set it to `[]` when none are known.
-   Keep the repository's Apache-2.0 `LICENSE` file and the matching
-   `project.license: "Apache-2.0"` metadata. This starter template supports
-   only that root licence. If the project deliberately uses another root
-   licence permitted by Palomar policy, use another starting point or own and
-   maintain the project's licence-validation CI contract. Cited sources and
-   dependencies retain their own licences.
-5. Update and commit dependency pins:
+Challenge.lean                          6 advertised statements, each with `sorry`
+Solution.lean                           same 6 signatures, each delegated to a `_impl`
+comparator.json                         declarations Comparator must match
+formalization.yaml                      registry metadata
+scripts/                                verify-comparator.sh, validate-formalization.rb, landrun-wrapper.sh
+docbuild/                               nested doc-gen4 project
+```
 
-   Before fetching and building the dependency closure, budget several GiB of
-   free space. After the root cache fetch and build, a clean local checkout of
-   the template's pinned Lean v4.32.0 manifest occupied about 7.7 GiB across
-   about 123,000 files under `.lake/`. The documentation build adds doc-gen4 and
-   its dependency closure under the shared `.lake/packages/` plus generated
-   output under `docbuild/.lake/`. The precise footprint changes with the
-   filesystem, cache contents, and any dependency updates. Both `.lake/`
-   directories are generated and must not be committed.
+---
 
-   ```text
-   lake update
-   (cd docbuild && MATHLIB_NO_CACHE_ON_UPDATE=1 lake update)
-   ```
+## Module dependency graph
 
-6. Run the project checks before submitting:
+Solid arrows are Lean `import` edges within this development; every module also
+imports Mathlib. `Challenge.lean` deliberately imports only the *setting*
+modules, not `Corollaries`, keeping the audited surface small.
 
-   ```text
-   lake exe cache get
-   lake build
-   (cd docbuild && lake build PalomarTemplate:docs)
-   ruby scripts/validate-formalization.rb
-   ./scripts/verify-comparator.sh
-   ```
+```mermaid
+flowchart TD
+    Linters["Linters.lean<br/><i>witness-tracking attributes</i>"]
+    Framework["Framework.lean<br/><i>mechanisms · Mech / Alloc categories · elementary taxation principle</i>"]
+    Myerson["MyersonSetting.lean<br/><i>v(a,θ) = θ·a</i>"]
+    Mirrlees["MirrleesSetting.lean<br/><i>v(y,θ) = θ·h(y) − g(y/θ)</i>"]
+    Master["MasterTheorem.lean<br/><i>envelope theorem · AllocR / MechR / Mech₀ · T ⊣ Q · Master Theorem 4.5</i>"]
+    Corollaries["Corollaries.lean<br/><i>Revenue Equivalence · Mirrlees instance · vacuity theorems · posted-price witness</i>"]
+    Basic["Basic.lean<br/><i>re-export</i>"]
 
-   The metadata command parses the YAML, requires the Apache-2.0 root-licence
-   declaration, and reports the path of every retained template sentinel. CI
-   also detects the checked-in `LICENSE` file independently and runs an
-   explicit `--expect-template` check only in the canonical
-   `PalomarRegistry/PalomarTemplate` repository, proving that the shipped toy
-   metadata still has exactly the intended sentinel surface. Pull requests
-   from contribution forks run in that upstream repository context. Every
-   other repository—including standalone forks and repositories made with
-   **Use this template**—runs the ordinary command and requires every sentinel
-   to be replaced. CI also runs the corresponding build, documentation, cache,
-   and Comparator checks. Run the final command from the repository root. The
-   full check set requires Linux, Git, Go, Ruby, Rust/Cargo, Python 3, and a
-   working Landrun sandbox.
+    Challenge["Challenge.lean<br/><i>6 statements + sorry</i>"]
+    Solution["Solution.lean<br/><i>6 proofs → _impl</i>"]
 
-   The pinned `lean-action` likewise runs `lake exe cache get` in CI and caches
-   `.lake/`. A successful canonical starter run deliberately includes the
-   statement-surface `sorry` warning and demonstrates the wiring, not submission
-   completeness.
+    Linters --> Framework
+    Framework --> Myerson
+    Framework --> Mirrlees
+    Framework --> Master
+    Master --> Corollaries
+    Myerson --> Corollaries
+    Mirrlees --> Corollaries
 
-7. Read the current
-   [Palomar submission policy](https://github.com/PalomarRegistry/PalomarPolicy/blob/main/CONTRIBUTING.md),
-   commit the final snapshot, and
-   [open the submission form](https://submit.palomar-registry.org/)
-   with the full 40-character commit SHA.
+    Master --> Basic
+    Myerson --> Basic
+    Mirrlees --> Basic
+    Corollaries --> Basic
+    Framework --> Basic
 
-   Submit only if you are a responsible author or maintainer of the substantive
-   formalization, or have approval from one. For a thin wrapper, answer about
-   the underlying formalization rather than the wrapper; the form records that
-   relationship and allows optional evidence.
+    Master --> Challenge
+    Myerson --> Challenge
+    Mirrlees --> Challenge
+    Basic --> Solution
 
-## Important boundaries
+    Challenge -. "Comparator: identical statements" .-> Solution
+```
 
-This repository is structurally valid but its toy theorem does **not** meet
-Palomar's editorial floor. A green build or Comparator check establishes only
-that Lean accepts the project and that the recorded solution proves the recorded
-statement using the permitted axioms. It does not establish mathematical
-significance, fidelity to a source, novelty, or peer review.
+**Layering, bottom to top**
 
-Keep `Challenge.lean` ordinary and readable. Definitions needed by the statement
-must have precise mathematical meanings and docstrings. Its transitive imports
-must resolve to Lean core, Mathlib, Tau Ceti, or CSLib; a Tau Ceti or CSLib
-import enlarges the trust surface and is prominently flagged. Dependencies used
-only by the proof may be arbitrary pinned Git dependencies.
-The root licence covers this repository snapshot only; cited papers, reused
-formalizations, and dependencies retain their own licences.
+| Layer | Module(s) | What it adds |
+|---|---|---|
+| Attributes | `Linters` | the linter machinery that makes `adj_T_Q`'s witness obligation load-bearing |
+| Stages 1–3 | `Framework` | `Mechanism`, `ICIRMechanism` (IC + IR), `surplus`, the thin categories **Mech** / **Alloc**, and `taxationPrinciple_impl` — which needs **only IC** |
+| Environments | `MyersonSetting`, `MirrleesSetting` | the two value functions and their calculus facts; both allocation spaces are `ℝ` |
+| Stage 4 | `MasterTheorem` | the envelope theorem (`surplus_split`), the *regular* subcategories `AllocR` / `MechR` / `Mech₀`, the adjunction `TR ⊣ QR`, and Master Theorem 4.5 (i)–(iii) |
+| Corollaries | `Corollaries` | `revenueEquivalence_impl` and `mirrlees_transferInvariance_impl` (one call, two value functions), plus `no_uniform_lipschitz` / `no_uniform_hW` and the posted-price witness object |
 
-Questions are welcome in the
-[Palomar channel on the Lean Zulip](https://leanprover.zulipchat.com/#narrow/channel/621638-Palomar).
+---
+
+## The six advertised results
+
+All six are stated in [`Challenge.lean`](Challenge.lean) with full docstrings and
+a `sorry`, and re-proved in [`Solution.lean`](Solution.lean) by delegating to the
+corresponding `*_impl` declaration.
+
+| # | Declaration | Kind | Source | `_impl` |
+|---|---|---|---|---|
+| 1 | `MechDesign.adj_T_Q` | `def` | Theorem 4.3 | `MasterTheorem.adj_T_Q_impl` |
+| 2 | `MechDesign.masterTheorem_existence` | `theorem` | Theorem 4.5(i) | `MasterTheorem.masterTheorem_existence_impl` |
+| 3 | `MechDesign.masterTheorem_isomorphism` | `theorem` | Theorem 4.5(ii) | `MasterTheorem.masterTheorem_isomorphism_impl` |
+| 4 | `MechDesign.masterTheorem_transferInvariance` | `theorem` | Theorem 4.5(iii) | `MasterTheorem.masterTheorem_transferInvariance_impl` |
+| 5 | `MechDesign.revenueEquivalence` | `theorem` | Myerson (1981) | `Corollaries.revenueEquivalence_impl` |
+| 6 | `MechDesign.taxationPrinciple` | `theorem` | Mirrlees (1971); Hammond (1979); Rochet (1985) | `Framework.taxationPrinciple_impl` |
+
+### How the results depend on each other
+
+```mermaid
+flowchart TD
+    IC["IC (a field of ICIRMechanism)"]
+    TDA["transfer_depends_only_on_alloc<br/><i>Framework — IC in both directions</i>"]
+    TP["taxationPrinciple ⟨6⟩<br/><i>one mechanism → a tax schedule T with t = T∘q</i>"]
+
+    SS["surplus_split<br/><i>MasterTheorem — the envelope theorem V(θ)=V(θ_min)+∫ ∂v/∂s</i>"]
+    ETU["envelope_transfer_unique / mechIso_of_sameAlloc_sameRent"]
+    MT4["Master Theorem 4.5<br/>existence ⟨2⟩ · isomorphism ⟨3⟩ · transfer invariance ⟨4⟩"]
+    RE["revenueEquivalence ⟨5⟩<br/><i>Myerson instance of 4.5(iii)</i>"]
+    MI["mirrlees_transferInvariance_impl<br/><i>Mirrlees instance of 4.5(iii) — NOT one of the six</i>"]
+
+    ADJ["adj_T_Q ⟨1⟩<br/><i>TR ⊣ QR on the regular subcategories</i>"]
+    NU["no_uniform_lipschitz · no_uniform_hW<br/><i>why ⟨1⟩ must be stated on AllocR/MechR, not Mech</i>"]
+
+    IC --> TDA --> TP
+    IC --> SS --> ETU --> MT4
+    MT4 --> RE
+    MT4 --> MI
+    SS --> ADJ
+    NU -. "motivates the restriction in" .-> ADJ
+```
+
+**Reading the graph**
+
+- **The taxation principle ⟨6⟩ is cheap.** It quantifies over *one* mechanism and
+  uses nothing but incentive compatibility: `transfer_depends_only_on_alloc`
+  applies IC at two types with the same allocation, in both directions, and the
+  transfers are pinned. No single crossing, no differentiability, no measure, no
+  `θ_min > 0`. It is general in the allocation type `A`, so the same theorem
+  posts a price list against winning probabilities in the auction setting.
+
+- **Revenue equivalence ⟨5⟩ is expensive.** It quantifies over *two* mechanisms
+  with the same allocation rule and the same boundary rent, and concludes they
+  agree everywhere on `[θ_min, ∞)`. Its content is the envelope theorem
+  `surplus_split` (Milgrom–Segal: MVT + squeeze), the whole of Stage 4.
+
+- **The genuine unification** is between revenue equivalence *in the auction
+  setting* and *in the taxation setting*: `revenueEquivalence_impl` and
+  `mirrlees_transferInvariance_impl` are the **same call** to
+  `masterTheorem_transferInvariance_impl`, differing only in the value function
+  `v` and the term witnessing that `v` is differentiable in the type. Both
+  allocation spaces are literally `ℝ`.
+
+- **The adjunction ⟨1⟩ is structure, not a lemma the corollaries consume.**
+  Neither ⟨5⟩ nor ⟨6⟩ uses `adj_T_Q`; the categorical fact they do use is that an
+  iso in **MechR** forces equal transfers. `adj_T_Q` is stated on the *regular*
+  subcategories `AllocR` / `MechR` rather than all of **Mech** because
+  `no_uniform_lipschitz` and `no_uniform_hW` prove that the envelope-theorem
+  hypotheses, if quantified over every object of **Mech**, cannot all be
+  satisfied — the statement would be vacuous. `Corollaries.myersonAdjunction`
+  instantiates it and `Corollaries.postedPriceObj` supplies an object, so the
+  statement has content.
+
+### The categorical picture
+
+Three thin categories and two functors, all in `MasterTheorem.lean`:
+
+- **`AllocR`** — regular monotone allocation rules; one morphism `r ⟶ r'` iff `r.q ≤ r'.q` pointwise.
+- **`MechR`** — regular BIC-IR mechanisms; `m ⟶ m'` iff `q ≤ q'` and `V_m ≤ V_{m'}` on `[θ_min, ∞)`.
+- **`Mech₀`** — the full subcategory of `MechR` on the zero-rent objects.
+
+```mermaid
+flowchart LR
+    A["AllocR"]
+    Z["Mech₀ — zero rent"]
+    M["MechR"]
+    A -- "T — attach the envelope transfer" --> M
+    M -- "Q — forget the transfer" --> A
+    A -- "T₀  (equivalence ≌)" --> Z
+    Z -- "ι — full subcategory" --> M
+```
+
+`T ⊣ Q` (`adj_T_Q`) is a **coreflection**: the unit `η_r : r ⟶ Q(T r)` is the
+identity (`Q ∘ T = 1` on the nose, by structure eta on `MonotoneAlloc`), so `T`
+is fully faithful. The counit `ε_m : T(Q m) ⟶ m` strips the rent, and
+`isIso_counit_iff_zeroRent` proves it is invertible **exactly** when
+`V_m(θ_min) = 0`. Corestricted to zero rent, `T` becomes an equivalence
+`equivAllocMech₀ : AllocR ≌ Mech₀` — a normalised mechanism *is* its allocation
+rule. That equivalence is the taxation principle at full strength; the elementary
+`taxationPrinciple` ⟨6⟩ is its shadow inside a single object.
+
+A longer prose account of all of this — including what each setting costs to
+discharge and where the "fiber" in each result lives — is in
+`planning/REVENUE_EQUIVALENCE_AND_TAXATION.md`.
+
+---
+
+## Building and verifying
+
+```bash
+lake exe cache get
+lake build                       # builds MechDesigAdjointfunctor, Challenge, Solution
+lake build Challenge Solution    # just the audited surfaces
+
+ruby scripts/validate-formalization.rb   # rejects leftover TEMPLATE sentinels
+./scripts/verify-comparator.sh           # pinned Comparator + lean4export + NanoDa under Landrun
+```
+
+`verify-comparator.sh` requires Linux with Git, Go, Ruby, Rust/Cargo, Python 3
+and a working Landrun sandbox. `enable_nanoda: true` in `comparator.json` turns
+on the independent NanoDa replay of the export.
+
+Optional documentation build:
+
+```bash
+(cd docbuild && lake build MechDesigAdjointfunctor:docs)
+```
+
+---
+
+## Submission
+
+1. Commit the tree; take the full 40-character SHA.
+2. Update `formalization.yaml` (`review.status`, reviewers) if the review state has changed.
+3. Open <https://submit.palomar-registry.org/> and enter the SHA.
+
+Submit only as a responsible author/maintainer of the formalization, or with
+their approval.
+
+---
+
+## References
+
+- R. B. Myerson, *Optimal Auction Design*, Mathematics of Operations Research 6(1):58–73, 1981. [DOI:10.1287/moor.6.1.58](https://doi.org/10.1287/moor.6.1.58)
+- J. A. Mirrlees, *An Exploration in the Theory of Optimum Income Taxation*, Review of Economic Studies 38(2):175–208, 1971. [DOI:10.2307/2296777](https://doi.org/10.2307/2296777)
+- S. Mac Lane, *Categories for the Working Mathematician*, Springer-Verlag, 1978.

@@ -12,9 +12,10 @@ import Mathlib.Order.CompleteLattice.Basic
 # Stage 1: Abstract Categorical Framework
 
 Defines the categories **Mech** and **Alloc**, the forgetful functor
-**Q : Mech → Alloc**, and establishes that **Alloc** is complete and **Q**
-preserves limits.  These are the prerequisites for the adjunction Q ⊣ T proved
-in `MasterTheorem.lean`.
+**Q : Mech → Alloc**.  
+
+Note: **Alloc** completeness and **Q** preserving limits (the prerequisites for the adjunction Q ⊣ T)
+are proved in `MasterTheorem.lean` (see `alloc_hasLimits` and `QR_preservesLimits`).
 
 ## Main declarations
 
@@ -23,10 +24,11 @@ in `MasterTheorem.lean`.
 * `MechDesign.ICIRMechanism` — object type for the category **Mech**
 * `MechDesign.MonotoneAlloc` — object type for the category **Alloc**
 * `MechDesign.mechCategory`, `MechDesign.allocCategory` — category instances
+* `MechDesign.transfer_depends_only_on_alloc` — IC ⟹ the transfer factors through `q`
+* `MechDesign.taxSchedule`, `MechDesign.taxationPrinciple_impl` — implementation of the Taxation Principle:
+  a schedule on allocations implements any IC mechanism, uniquely on the range
 * `MechDesign.Q` — forgetful functor Q : Mech → Alloc
 * `MechDesign.IC_implies_monotone` — condition MON from IC + SC (Lemma 1.7 precursor)
-* `MechDesign.alloc_hasLimits` — Lemma 1.7
-* `MechDesign.Q_preservesColimits` — Lemma 1.8 (proved in `MasterTheorem.lean`)
 
 ## References
 
@@ -74,7 +76,7 @@ structural, not cosmetic:
   (`adj_T_Q`).  IR is what orients it — it is used essentially in the counit.
 * The normalisation `V(θ_min) = 0` cuts out the full subcategory `Mech₀` (`ZeroRent`),
   on which the counit becomes invertible and `T ⊣ Q` upgrades to an adjoint equivalence
-  `Alloc ≌ Mech₀` (`equivAllocMech₀`) — the Taxation Principle.
+  `AllocR ≌ Mech₀` (`equivAllocMech₀`) — the Taxation Principle.
 
 So `Mech` is *not* the category of normalised mechanisms; `Mech₀` is. -/
 def IsIR {A : Type*} (v : A → ℝ → ℝ) (θ_min : ℝ) (m : Mechanism A) : Prop :=
@@ -191,7 +193,85 @@ instance allocCategory {A : Type*} [Preorder A] :
   comp_id _ := Subsingleton.elim _ _
   assoc _ _ _ := Subsingleton.elim _ _
 
-/-! ### 1.5 The Allocation Functor **Q : Mech → Alloc** (Definition 1.6) -/
+/-! ### 1.5 The Taxation Principle: transfers factor through the allocation
+
+The classical taxation principle is a statement about **one** mechanism: an IC mechanism does
+not need the agent's *type* to compute the payment, only the *allocation* the agent takes.  So
+the mechanism can be replaced by a schedule posted on allocations — a nonlinear tax on income,
+a price list on quantities — and the direct mechanism is redundant.
+
+This is where it comes from, and it costs nothing but IC.  It is logically prior to everything
+in Stages 4–5: no envelope theorem, no single crossing, no differentiability, no integrability,
+no measure.  It is also *different in kind* from revenue equivalence, which compares two
+mechanisms; this compares two **types** inside one mechanism. -/
+
+/-- **Transfers depend on the type only through the allocation.**
+
+If a mechanism gives two physical types the same allocation, IC forces it to charge them the
+same.  Apply IC in both directions: type `θ` reporting `θ'` and type `θ'` reporting `θ`.  The
+value terms cancel — they are equal, since the allocations are — and the two inequalities on
+the transfers close on each other.
+
+*Reference*: Hammond (1979), Theorem 1; Rochet (1985), Proposition 1. -/
+theorem transfer_depends_only_on_alloc {A : Type*} [Preorder A]
+    {v : A → ℝ → ℝ} {θ_min : ℝ}
+    (m : ICIRMechanism A v θ_min) {θ θ' : ℝ} (hθ : θ_min ≤ θ) (hθ' : θ_min ≤ θ')
+    (hq : m.mech.q θ = m.mech.q θ') : m.mech.t θ = m.mech.t θ' := by
+  have h1 := m.hIC θ θ' hθ hθ'
+  have h2 := m.hIC θ' θ hθ' hθ
+  rw [hq] at h1
+  rw [← hq] at h2
+  linarith
+
+/-- **The schedule** the taxation principle produces: the payment posted against an allocation
+`a` is what the mechanism charges some type that takes `a`, and off the range it is irrelevant
+(set to `0`).  Well defined by `transfer_depends_only_on_alloc` — which type is chosen does not
+matter, and `taxSchedule_apply` is the statement that it does not.
+
+In the Mirrlees reading `A` is income and this is the nonlinear tax schedule `T(y)`; in the
+Myerson reading it is the price posted against a winning probability. -/
+noncomputable def taxSchedule {A : Type*} [Preorder A]
+    {v : A → ℝ → ℝ} {θ_min : ℝ} (m : ICIRMechanism A v θ_min) (a : A) : ℝ :=
+  open Classical in
+  if h : ∃ θ, θ_min ≤ θ ∧ m.mech.q θ = a then m.mech.t h.choose else 0
+
+/-- **The taxation principle, existence half**: the mechanism is implemented by its schedule.
+Every physical type pays what the schedule posts against the allocation it takes. -/
+theorem taxSchedule_apply {A : Type*} [Preorder A]
+    {v : A → ℝ → ℝ} {θ_min : ℝ} (m : ICIRMechanism A v θ_min)
+    {θ : ℝ} (hθ : θ_min ≤ θ) : m.mech.t θ = taxSchedule m (m.mech.q θ) := by
+  have hex : ∃ θ', θ_min ≤ θ' ∧ m.mech.q θ' = m.mech.q θ := ⟨θ, hθ, rfl⟩
+  rw [taxSchedule, dif_pos hex]
+  exact (transfer_depends_only_on_alloc m hex.choose_spec.1 hθ hex.choose_spec.2).symm
+
+/-- **The taxation principle, uniqueness half**: any two schedules that implement the same
+mechanism agree wherever it matters — on the allocations the mechanism actually assigns.
+(Off that range a schedule is unconstrained, which is why uniqueness is stated as `EqOn` and
+not as equality of functions.) -/
+theorem taxSchedule_unique {A : Type*} [Preorder A]
+    {v : A → ℝ → ℝ} {θ_min : ℝ} (m : ICIRMechanism A v θ_min) (T T' : A → ℝ)
+    (hT : ∀ θ, θ_min ≤ θ → m.mech.t θ = T (m.mech.q θ))
+    (hT' : ∀ θ, θ_min ≤ θ → m.mech.t θ = T' (m.mech.q θ)) :
+    Set.EqOn T T' (m.mech.q '' Set.Ici θ_min) := by
+  rintro a ⟨θ, hθ, rfl⟩
+  rw [← hT θ hθ, hT' θ hθ]
+
+/-- **The taxation principle** (Hammond 1979; Rochet 1985), for a single BIC-IR mechanism:
+there is a schedule on allocations that implements it, and it is unique on the range.
+
+Note what is *not* here: no second mechanism, no boundary-rent hypothesis, no regularity.  The
+comparison statement — two mechanisms with the same allocation and the same rent charge the
+same — is revenue equivalence (`masterTheorem_transferInvariance`), which is a different
+theorem and needs the envelope machinery of Stage 4. -/
+theorem taxationPrinciple_impl {A : Type*} [Preorder A]
+    {v : A → ℝ → ℝ} {θ_min : ℝ} (m : ICIRMechanism A v θ_min) :
+    ∃ T : A → ℝ, (∀ θ, θ_min ≤ θ → m.mech.t θ = T (m.mech.q θ)) ∧
+      ∀ T' : A → ℝ, (∀ θ, θ_min ≤ θ → m.mech.t θ = T' (m.mech.q θ)) →
+        Set.EqOn T T' (m.mech.q '' Set.Ici θ_min) :=
+  ⟨taxSchedule m, fun _ hθ => taxSchedule_apply m hθ,
+    fun T' hT' => taxSchedule_unique m _ T' (fun _ hθ => taxSchedule_apply m hθ) hT'⟩
+
+/-! ### 1.6 The Allocation Functor **Q : Mech → Alloc** (Definition 1.6) -/
 
 /-- **Condition MON from IC + SC** (precursor to Lemma 1.7): every BIC mechanism has a
 non-decreasing allocation rule.  Proof sketch: if `q` were decreasing over some
@@ -224,11 +304,12 @@ noncomputable def Q {A : Type*} [LinearOrder A]
   map_id _     := by apply @Subsingleton.elim _ allocHom_subsingleton
   map_comp _ _ := by apply @Subsingleton.elim _ allocHom_subsingleton
 
-/-! ### 1.6 Q Preserves Colimits (Lemma 1.7) -/
+/-! ### 1.7 Q Preserves Colimits (Lemma 1.7) -/
 
 -- **Lemma 1.8**: Q preserves all small colimits because it is the left adjoint in Q ⊣ T.
--- The proof requires `adj_Q_T` (defined in `MasterTheorem.lean`, which imports this file),
--- so it lives there as `MechDesign.Q_preservesColimits`.
+-- The proof requires `adj_T_Q_impl` (defined in `MasterTheorem.lean`, which imports this
+-- file), so it lives there as `MechDesign.TR_preservesColimits` / `MechDesign.QR_preservesLimits`
+-- — on the regular subcategories, where the adjunction is not vacuous.
 -- *Reference*: Mac Lane (1978), Chapter V, Theorem 5.1 (left adjoints preserve colimits).
 
 end MechDesign
