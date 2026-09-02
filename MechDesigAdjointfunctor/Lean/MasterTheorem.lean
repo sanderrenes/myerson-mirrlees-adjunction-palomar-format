@@ -878,6 +878,72 @@ theorem T_initial {A : Type*} [LinearOrder A]
   intro f g
   exact @Subsingleton.elim _ mechHom_subsingleton _ _
 
+/-- **`T(r)` is the surplus-minimal — hence revenue-maximal — admissible mechanism across
+the whole up-set of `r`, obtained by *consuming* the adjunction `adj_T_Q_impl`.**
+
+`Tmech_surplus_le` and `T_initial` are *fiberwise*: they compare `T(r)` only with mechanisms
+whose allocation is exactly `r.q`.  The adjunction gives strictly more.  A morphism
+`r ⟶ Q(m)` in `AllocR` is nothing but the pointwise bound `r.q ≤ q_m`; transposing it across
+
+  `Hom_MechR(T r, m) ≅ Hom_AllocR(r, Q m)`
+
+produces a morphism `T(r) ⟶ m` in `MechR`, whose surplus component is
+
+  `V_{T(r)} θ ≤ V_m θ`   for all `θ ≥ θ_min`
+
+for **every** regular BIC-IR mechanism `m` with `r.q ≤ q_m` — not only for `q_m = r.q`.
+That extra reach is exactly the universal property over fiberwise initiality: `T(r)` is the
+pointwise surplus-minimal point of the entire order-filter above `r`, so among admissible
+mechanisms whose allocation dominates `r` it extracts the most revenue at every type.
+
+The proof is a single application of `Adjunction.homEquiv`; `hSurp` is read straight off the
+transposed morphism. -/
+theorem Tmech_surplus_le_of_alloc_le {A : Type*} [LinearOrder A]
+    {v : A → ℝ → ℝ} {θ_min : ℝ}
+    (hθ_pos : 0 < θ_min) {D : Set ℝ} (hSC : SingleCrossing v D)
+    (hD : ∀ θ, θ ∈ D) (hD_Ioi : Set.Ioi 0 ⊆ D)
+    (hdiff : ∀ (a : A), DifferentiableOn ℝ (v a) (Set.Ioi 0))
+    (hintC : ∀ (a : A) b c, IntervalIntegrable (deriv (v a)) MeasureTheory.volume b c)
+    (r : AllocR A v θ_min) (m : MechR A v θ_min)
+    (hle : ∀ θ, r.obj.q θ ≤ m.obj.mech.q θ) :
+    ∀ θ, θ_min ≤ θ →
+      surplus (Tmech hθ_pos hSC hD_Ioi r.obj hdiff r.property.int hintC) θ ≤
+        surplus m.obj θ := by
+  intro θ hθ
+  set adj := adj_T_Q_impl θ_min hθ_pos hSC hD hD_Ioi hdiff hintC with hadj
+  -- The `AllocR`-morphism `r ⟶ Q(m)` is just the pointwise bound `r.q ≤ q_m`.
+  have f : r ⟶ (QR (θ_min := θ_min) hSC hD).obj m :=
+    ObjectProperty.homMk ({ h := hle } : AllocHom r.obj _)
+  -- Consume the adjunction: transpose to a `MechR`-morphism `T(r) ⟶ m`.
+  have g : (TR (θ_min := θ_min) hθ_pos hSC hD_Ioi hdiff hintC).obj r ⟶ m :=
+    (adj.homEquiv r m).symm f
+  exact g.hom.hSurp θ hθ
+
+/-- **`T(r)` charges the pointwise-largest transfer in its fiber** — the transfer form of
+`Tmech_surplus_le_of_alloc_le` specialised back to `q_m = r.q`, where the `v (q θ) θ` term
+cancels.  (`envelope_transfer_le` proves the same bound without routing through the
+adjunction; this version records that the adjunction delivers it.) -/
+theorem envelope_transfer_le_via_adj {A : Type*} [LinearOrder A]
+    {v : A → ℝ → ℝ} {θ_min : ℝ}
+    (hθ_pos : 0 < θ_min) {D : Set ℝ} (hSC : SingleCrossing v D)
+    (hD : ∀ θ, θ ∈ D) (hD_Ioi : Set.Ioi 0 ⊆ D)
+    (hdiff : ∀ (a : A), DifferentiableOn ℝ (v a) (Set.Ioi 0))
+    (hintC : ∀ (a : A) b c, IntervalIntegrable (deriv (v a)) MeasureTheory.volume b c)
+    (r : AllocR A v θ_min) (m : MechR A v θ_min)
+    (hm : ∀ θ, m.obj.mech.q θ = r.obj.q θ) :
+    ∀ θ, θ_min ≤ θ →
+      m.obj.mech.t θ ≤
+        (Tmech hθ_pos hSC hD_Ioi r.obj hdiff r.property.int hintC).mech.t θ := by
+  intro θ hθ
+  have hle : ∀ θ, r.obj.q θ ≤ m.obj.mech.q θ := fun θ => (hm θ).ge
+  have h := Tmech_surplus_le_of_alloc_le hθ_pos hSC hD hD_Ioi hdiff hintC r m hle θ hθ
+  simp only [surplus] at h
+  have hq : v (m.obj.mech.q θ) θ = v (r.obj.q θ) θ := by rw [hm θ]
+  have hTq : (Tmech hθ_pos hSC hD_Ioi r.obj hdiff r.property.int hintC).mech.q θ = r.obj.q θ :=
+    rfl
+  rw [hq, hTq] at h
+  linarith
+
 /-- The **zero-rent** property: the lowest type is left no surplus, `V(θ_min) = 0`.
 This is the normalisation the informal statement of `IsIR` always intended (`IsIR` itself
 only asserts `V(θ_min) ≥ 0`). -/

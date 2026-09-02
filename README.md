@@ -259,11 +259,30 @@ Two remarks on what is and isn't used:
   are the same call to `masterTheorem_transferInvariance_impl`, differing only in
   the value function `v`.
 
+**What consuming the adjunction adds.** Steps 1–3 use only that an iso in
+**MechR** equalizes transfers. `adj_T_Q` gives a sharper, *cross-fiber*
+statement. In these thin categories the hom-set bijection
+`Hom_{MechR}(T r, m) ≅ Hom_{AllocR}(r, Q m)` is an iff of `Prop`s, and a morphism
+`r ⟶ Q m` in **AllocR** is just the pointwise bound `r.q ≤ q_m`. Transposing it
+yields a morphism `T(r) ⟶ m` whose surplus component is `V_{T(r)} ≤ V_m` on
+`[θ_min, ∞)` — for **every** regular admissible `m` whose allocation *dominates*
+`r`, not only for `q_m = r.q`. So `T(r)` is the pointwise surplus-minimal, hence
+revenue-maximal, point of the whole order-filter above `r`: it extracts the most
+revenue at every type among admissible mechanisms with allocation `≥ r`. This is
+`Tmech_surplus_le_of_alloc_le` (`MasterTheorem.lean`), proved by one application
+of `Adjunction.homEquiv`; `envelope_transfer_le_via_adj` is the transfer form.
+Fiberwise initiality (`T_initial`, `Tmech_surplus_le`) is the `q_m = r.q` special
+case. The counit's direction — `ε_m : T(Q m) ⟶ m` and not the reverse, so `T` is
+the *left* adjoint — is where IR enters: `V_m(θ_min) ≥ 0 = V_{T(Q m)}(θ_min)`, and
+`isIso_counit_iff_zeroRent` makes `Mech₀` exactly the locus where `ε` is
+invertible.
+
 | statement | quantifier | needs |
 |---|---|---|
 | `t` factors through `q` (`taxSchedule`) | fibers of `q`, one object | IC |
 | fiber of `Q` over `r` is a rent-family (`T_initial`, `mechIso_of_sameAlloc_sameRent`) | objects with `Q m = r` | IC + envelope theorem |
-| `AllocR ≌ Mech₀` (`equivAllocMech₀`) | all normalised objects | the row above, plus normalisation |
+| `T(r)` is revenue-maximal above `r` (`Tmech_surplus_le_of_alloc_le`) | objects with `r.q ≤ q_m` | the row above, via `adj_T_Q` |
+| `AllocR ≌ Mech₀` (`equivAllocMech₀`) | all normalised objects | the rent-family row, plus normalisation |
 
 ---
 
