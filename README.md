@@ -208,6 +208,34 @@ is fully faithful. The counit `ε_m : T(Q m) ⟶ m` strips the rent, and
 rule. That equivalence is the taxation principle at full strength; the elementary
 `taxationPrinciple` ⟨6⟩ is its shadow inside a single object.
 
+### The taxation principle and revenue equivalence are not the same relation
+
+Both results are an instance of one slogan — *the transfer is the allocation plus
+a constant* — but categorically they are two different factorization statements,
+about two different diagrams, at two different prices. The word "fiber" refers to
+two different maps.
+
+| | quantifies over | categorical content | cost |
+|---|---|---|---|
+| **Taxation principle** (elementary, ⟨6⟩) | the fibers of the allocation map `q`, **inside one mechanism** | `t` is constant on those fibers, so it coequalizes the kernel pair of `q` restricted to `[θ_min, ∞)` and factors through the epi part of `q`'s epi–mono factorization — `taxSchedule` is that induced map on the image | IC only |
+| **Revenue equivalence** (⟨5⟩) | the fiber of the **functor** `Q` over a fixed `r`, **across objects** | that fiber is a one-parameter family indexed by the boundary rent, with `T(r)` initial in it (`T_initial`, `envelope_transfer_shift`); equal rent means isomorphic (`mechIso_of_sameAlloc_sameRent`), and an iso in a thin category forces equal transfers | IC **+ the envelope theorem**, i.e. all of Stage 4 |
+
+Neither corollary consumes the adjunction `adj_T_Q`. The shared categorical
+ingredient is only `transfer_eq_of_iso` — that an iso in **MechR** equalizes
+transfers — which is a fact about the hom-sets, not about `T ⊣ Q`.
+
+The machinery does collapse the two in one place: the equivalence
+`AllocR ≌ Mech₀`. On *normalised* mechanisms `Q` is not merely faithful but
+invertible, and that is the taxation principle "at full strength" — but it is the
+elementary factorization **plus** the whole envelope layer, so it costs what
+revenue equivalence costs, not what the elementary taxation principle costs. Two
+theorems share the name at very different prices.
+
+The one relation that *is* an identity is between revenue equivalence in the
+**auction** setting and in the **taxation** setting: `revenueEquivalence_impl` and
+`mirrlees_transferInvariance_impl` are the same call to
+`masterTheorem_transferInvariance_impl`, differing only in the value function.
+
 ---
 
 ## Building and verifying
