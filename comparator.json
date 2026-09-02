@@ -5,6 +5,7 @@
     "MechDesign.masterTheorem_existence",
     "MechDesign.masterTheorem_isomorphism",
     "MechDesign.masterTheorem_transferInvariance",
+    "MechDesign.masterTheorem_rentExtraction",
     "MechDesign.revenueEquivalence",
     "MechDesign.taxationPrinciple"
   ],

@@ -122,6 +122,42 @@ theorem masterTheorem_transferInvariance {A : Type*} [LinearOrder A]
     ∀ θ, θ_min ≤ θ → m₁.mech.t θ = m₂.mech.t θ :=
   sorry
 
+/-- **Rent extraction / pointwise revenue maximality** (Corollary 4.4, cross-fiber form):
+fix a monotone allocation `r`.  Among **all** BIC-IR mechanisms whose allocation rule
+dominates `r` pointwise, the zero-rent mechanism `T(r)` leaves the agent the least surplus
+at every physical type — equivalently, in the fiber where the allocations agree, it charges
+the largest transfer at every physical type.
+
+Fiberwise (`q_m = r.q`) this is the surplus component of the initial morphism `T(r) ⟶ m`.
+The statement here is stronger: it holds across the whole order-filter `r.q ≤ q_m`, and that
+reach is exactly what `adj_T_Q` buys — a morphism `r ⟶ Q(m)` in **Alloc** is the pointwise
+bound `r.q ≤ q_m`, and its adjoint transpose `T(r) ⟶ m` carries `V_{T(r)} ≤ V_m`.  The
+hypotheses are the envelope-theorem regularity conditions for `r` and for `m`'s allocation;
+they mention only allocation rules, so — unlike a hypothesis quantified over objects of
+**Mech** — they are satisfiable (`PostedPrice` discharges them). -/
+theorem masterTheorem_rentExtraction {A : Type*} [LinearOrder A]
+    {v : A → ℝ → ℝ} {θ_min : ℝ}
+    (hθ_pos : 0 < θ_min) {D : Set ℝ} (hSC : SingleCrossing v D) (hD : ∀ θ, θ ∈ D)
+    (hD_Ioi : Set.Ioi 0 ⊆ D)
+    (r : MonotoneAlloc A)
+    (hdiff : ∀ (a : A), DifferentiableOn ℝ (v a) (Set.Ioi 0))
+    (hint : ∀ a b, IntervalIntegrable (typeDerivAlongAlloc v r) MeasureTheory.volume a b)
+    (hintC : ∀ (a : A) b c, IntervalIntegrable (deriv (v a)) MeasureTheory.volume b c)
+    (Lr : NNReal) (hrLip : ∀ θ' : ℝ, LipschitzOnWith Lr (v (r.q θ')) (Set.Ici θ_min))
+    (hrW : ∀ θ, θ_min ≤ θ →
+      ContinuousWithinAt (fun p : ℝ × ℝ => deriv (v (r.q p.1)) p.2)
+        (Set.Ici θ ×ˢ Set.Ici θ) (θ, θ))
+    (m : ICIRMechanism A v θ_min) (hle : ∀ θ, r.q θ ≤ m.mech.q θ)
+    (hmInt : ∀ a b, IntervalIntegrable (typeDerivAlongAlloc v ⟨m.mech.q, m.hMono⟩)
+      MeasureTheory.volume a b)
+    (Lm : NNReal) (hmLip : ∀ θ' : ℝ, LipschitzOnWith Lm (v (m.mech.q θ')) (Set.Ici θ_min))
+    (hmW : ∀ θ, θ_min ≤ θ →
+      ContinuousWithinAt (fun p : ℝ × ℝ => deriv (v (m.mech.q p.1)) p.2)
+        (Set.Ici θ ×ˢ Set.Ici θ) (θ, θ)) :
+    ∀ θ, θ_min ≤ θ →
+      surplus (Tmech hθ_pos hSC hD_Ioi r hdiff hint hintC) θ ≤ surplus m θ :=
+  sorry
+
 /-- **Revenue Equivalence Theorem** (Myerson 1981): any two BIC-IR mechanisms with the same
 allocation rule and the same boundary rent charge the same transfer at every physical type —
 hence raise the same expected revenue under any distribution of types. -/

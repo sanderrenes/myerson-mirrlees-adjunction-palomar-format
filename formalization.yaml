@@ -100,6 +100,7 @@ status:
   main_results:
     - "Adjunction T ⊣ Q between categories Mech and Alloc"
     - "Master Theorem: existence, uniqueness, and characterization of BIC-IR mechanisms"
+    - "Rent extraction: T(r) is surplus-minimal / revenue-maximal among admissible mechanisms whose allocation dominates r"
     - "Revenue Equivalence Theorem (Myerson)"
     - "Taxation Principle (Mirrlees)"
 
@@ -149,5 +150,13 @@ alignment:
       module: "Challenge"
       status: "proved"
       note: "Transfer invariance"
+    - source: "Corollary 4.4"
+      lean: "MechDesign.masterTheorem_rentExtraction"
+      module: "Challenge"
+      status: "proved"
+      note: >-
+        Cross-fiber form: T(r) leaves the least surplus (extracts the most revenue) at
+        every type among BIC-IR mechanisms whose allocation dominates r; proved by
+        consuming the adjunction adj_T_Q
 
 acknowledgements: "Mathlib developers and contributors"

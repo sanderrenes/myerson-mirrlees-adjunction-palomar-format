@@ -14,7 +14,7 @@ allocation rules and a category of incentive-compatible mechanisms.
 This repository follows the [Palomar](https://palomar-registry.org/) submission
 layout: a small human-auditable statement surface (`Challenge.lean`), a proof
 surface with identical signatures (`Solution.lean`), and the full development in
-`MechDesigAdjointfunctor/`. `comparator.json` names the six declarations that
+`MechDesigAdjointfunctor/`. `comparator.json` names the seven declarations that
 Comparator checks are stated identically in both surfaces and proved with only
 the permitted axioms.
 
@@ -37,8 +37,8 @@ MechDesigAdjointfunctor/
     └── Corollaries.lean                Revenue Equivalence and the Mirrlees instance,
                                         vacuity theorems, the posted-price witness
 
-Challenge.lean                          6 advertised statements, each with `sorry`
-Solution.lean                           same 6 signatures, each delegated to a `_impl`
+Challenge.lean                          7 advertised statements, each with `sorry`
+Solution.lean                           same 7 signatures, each delegated to a `_impl`
 comparator.json                         declarations Comparator must match
 formalization.yaml                      registry metadata
 scripts/                                verify-comparator.sh, validate-formalization.rb, landrun-wrapper.sh
@@ -99,9 +99,9 @@ flowchart TD
 
 ---
 
-## The six advertised results
+## The seven advertised results
 
-All six are stated in [`Challenge.lean`](Challenge.lean) with full docstrings and
+All seven are stated in [`Challenge.lean`](Challenge.lean) with full docstrings and
 a `sorry`, and re-proved in [`Solution.lean`](Solution.lean) by delegating to the
 corresponding `*_impl` declaration.
 
@@ -113,6 +113,13 @@ corresponding `*_impl` declaration.
 | 4 | `MechDesign.masterTheorem_transferInvariance` | `theorem` | Theorem 4.5(iii) | `MasterTheorem.masterTheorem_transferInvariance_impl` |
 | 5 | `MechDesign.revenueEquivalence` | `theorem` | Myerson (1981) | `Corollaries.revenueEquivalence_impl` |
 | 6 | `MechDesign.taxationPrinciple` | `theorem` | Mirrlees (1971); Hammond (1979); Rochet (1985) | `Framework.taxationPrinciple_impl` |
+| 7 | `MechDesign.masterTheorem_rentExtraction` | `theorem` | Corollary 4.4 (cross-fiber) | `MasterTheorem.masterTheorem_rentExtraction_impl` |
+
+Result 7 is the one advertised statement whose proof *consumes* the adjunction
+⟨1⟩: `T(r)` leaves the agent the least surplus — extracts the most revenue — at
+every type among BIC-IR mechanisms whose allocation dominates `r`, obtained by
+transposing the **Alloc**-morphism `r ⟶ Q(m)` (the bound `r.q ≤ q_m`) across
+`Hom_{MechR}(T r, m) ≅ Hom_{AllocR}(r, Q m)`.
 
 ### How the results depend on each other
 
@@ -125,8 +132,9 @@ flowchart TD
     ETU["envelope_transfer_unique / mechIso_of_sameAlloc_sameRent"]
     MT4["Master Theorem 4.5 - results 2, 3, 4"]
     RE["revenueEquivalence - result 5"]
-    MI["mirrlees_transferInvariance_impl - not one of the six"]
+    MI["mirrlees_transferInvariance_impl - not advertised"]
     ADJ["adj_T_Q - result 1"]
+    RX["masterTheorem_rentExtraction - result 7"]
     NU["no_uniform_lipschitz / no_uniform_hW"]
 
     IC --> TDA
@@ -137,6 +145,7 @@ flowchart TD
     MT4 --> RE
     MT4 --> MI
     SS --> ADJ
+    ADJ --> RX
     NU -.->|"motivates the subcategory restriction"| ADJ
 ```
 
@@ -148,6 +157,9 @@ flowchart TD
 - `adj_T_Q` (result 1) is `TR ⊣ QR` on the regular subcategories `AllocR` /
   `MechR`; `no_uniform_lipschitz` and `no_uniform_hW` are why it must be stated
   there rather than on all of **Mech**.
+- `masterTheorem_rentExtraction` (result 7) transposes an **Alloc**-morphism
+  across `adj_T_Q` to bound `V_{T(r)} ≤ V_m` across the whole up-set of `r` — the
+  only advertised result that consumes the adjunction.
 
 **Reading the graph**
 
@@ -270,7 +282,9 @@ yields a morphism `T(r) ⟶ m` whose surplus component is `V_{T(r)} ≤ V_m` on
 revenue-maximal, point of the whole order-filter above `r`: it extracts the most
 revenue at every type among admissible mechanisms with allocation `≥ r`. This is
 `Tmech_surplus_le_of_alloc_le` (`MasterTheorem.lean`), proved by one application
-of `Adjunction.homEquiv`; `envelope_transfer_le_via_adj` is the transfer form.
+of `Adjunction.homEquiv` — advertised as result ⟨7⟩,
+`masterTheorem_rentExtraction`, the only one of the seven whose proof consumes
+`adj_T_Q`. `envelope_transfer_le_via_adj` is the transfer form.
 Fiberwise initiality (`T_initial`, `Tmech_surplus_le`) is the `q_m = r.q` special
 case. The counit's direction — `ε_m : T(Q m) ⟶ m` and not the reverse, so `T` is
 the *left* adjoint — is where IR enters: `V_m(θ_min) ≥ 0 = V_{T(Q m)}(θ_min)`, and

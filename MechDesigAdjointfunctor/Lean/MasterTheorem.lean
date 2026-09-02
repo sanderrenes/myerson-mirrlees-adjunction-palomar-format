@@ -944,6 +944,41 @@ theorem envelope_transfer_le_via_adj {A : Type*} [LinearOrder A]
   rw [hq, hTq] at h
   linarith
 
+/-- **Rent extraction (plain-hypothesis form)** — the `_impl` behind the advertised
+`MechDesign.masterTheorem_rentExtraction`.
+
+Same content as `Tmech_surplus_le_of_alloc_le`: fix a monotone allocation `r`; among all
+BIC-IR mechanisms whose allocation rule dominates `r` pointwise, the zero-rent mechanism
+`T(r)` leaves the agent the least surplus at every physical type.  Regularity of `r` and of
+`m`'s allocation is spelled out as explicit hypotheses here rather than carried by
+`AllocR` / `MechR` objects, so the advertised statement never mentions the full
+subcategories.  The proof repackages the hypotheses and hands off to
+`Tmech_surplus_le_of_alloc_le`, which consumes the adjunction `adj_T_Q_impl`. -/
+theorem masterTheorem_rentExtraction_impl {A : Type*} [LinearOrder A]
+    {v : A → ℝ → ℝ} {θ_min : ℝ}
+    (hθ_pos : 0 < θ_min) {D : Set ℝ} (hSC : SingleCrossing v D) (hD : ∀ θ, θ ∈ D)
+    (hD_Ioi : Set.Ioi 0 ⊆ D)
+    (r : MonotoneAlloc A)
+    (hdiff : ∀ (a : A), DifferentiableOn ℝ (v a) (Set.Ioi 0))
+    (hint : ∀ a b, IntervalIntegrable (typeDerivAlongAlloc v r) MeasureTheory.volume a b)
+    (hintC : ∀ (a : A) b c, IntervalIntegrable (deriv (v a)) MeasureTheory.volume b c)
+    (Lr : NNReal) (hrLip : ∀ θ' : ℝ, LipschitzOnWith Lr (v (r.q θ')) (Set.Ici θ_min))
+    (hrW : ∀ θ, θ_min ≤ θ →
+      ContinuousWithinAt (fun p : ℝ × ℝ => deriv (v (r.q p.1)) p.2)
+        (Set.Ici θ ×ˢ Set.Ici θ) (θ, θ))
+    (m : ICIRMechanism A v θ_min) (hle : ∀ θ, r.q θ ≤ m.mech.q θ)
+    (hmInt : ∀ a b, IntervalIntegrable (typeDerivAlongAlloc v ⟨m.mech.q, m.hMono⟩)
+      MeasureTheory.volume a b)
+    (Lm : NNReal) (hmLip : ∀ θ' : ℝ, LipschitzOnWith Lm (v (m.mech.q θ')) (Set.Ici θ_min))
+    (hmW : ∀ θ, θ_min ≤ θ →
+      ContinuousWithinAt (fun p : ℝ × ℝ => deriv (v (m.mech.q p.1)) p.2)
+        (Set.Ici θ ×ˢ Set.Ici θ) (θ, θ)) :
+    ∀ θ, θ_min ≤ θ →
+      surplus (Tmech hθ_pos hSC hD_Ioi r hdiff hint hintC) θ ≤ surplus m θ := by
+  have hr : RegAlloc v θ_min r := ⟨⟨Lr, hrLip⟩, hrW, hint⟩
+  have hm : RegMech v θ_min m := ⟨⟨Lm, hmLip⟩, hmW, hmInt⟩
+  exact Tmech_surplus_le_of_alloc_le hθ_pos hSC hD hD_Ioi hdiff hintC ⟨r, hr⟩ ⟨m, hm⟩ hle
+
 /-- The **zero-rent** property: the lowest type is left no surplus, `V(θ_min) = 0`.
 This is the normalisation the informal statement of `IsIR` always intended (`IsIR` itself
 only asserts `V(θ_min) ≥ 0`). -/
