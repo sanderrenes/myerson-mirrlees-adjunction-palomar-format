@@ -208,33 +208,62 @@ is fully faithful. The counit `ε_m : T(Q m) ⟶ m` strips the rent, and
 rule. That equivalence is the taxation principle at full strength; the elementary
 `taxationPrinciple` ⟨6⟩ is its shadow inside a single object.
 
-### The taxation principle and revenue equivalence are not the same relation
+### The taxation principle in category theory
 
-Both results are an instance of one slogan — *the transfer is the allocation plus
-a constant* — but categorically they are two different factorization statements,
-about two different diagrams, at two different prices. The word "fiber" refers to
-two different maps.
+Both headline results say *the transfer is the allocation plus a constant*, and
+in this repo both are derived as factorization statements — but over two
+different maps, one nested in the other.
 
-| | quantifies over | categorical content | cost |
-|---|---|---|---|
-| **Taxation principle** (elementary, ⟨6⟩) | the fibers of the allocation map `q`, **inside one mechanism** | `t` is constant on those fibers, so it coequalizes the kernel pair of `q` restricted to `[θ_min, ∞)` and factors through the epi part of `q`'s epi–mono factorization — `taxSchedule` is that induced map on the image | IC only |
-| **Revenue equivalence** (⟨5⟩) | the fiber of the **functor** `Q` over a fixed `r`, **across objects** | that fiber is a one-parameter family indexed by the boundary rent, with `T(r)` initial in it (`T_initial`, `envelope_transfer_shift`); equal rent means isomorphic (`mechIso_of_sameAlloc_sameRent`), and an iso in a thin category forces equal transfers | IC **+ the envelope theorem**, i.e. all of Stage 4 |
+**Step 1 — the taxation principle: factor `t` through `q`.** Fix one mechanism
+`m` and read its allocation `q` as a map `[θ_min, ∞) → A` and its transfer `t` as
+a map `[θ_min, ∞) → ℝ`. `transfer_depends_only_on_alloc` (`Framework.lean`) applies
+IC in both directions at any two types with `q θ = q θ'` and concludes
+`t θ = t θ'`: `t` is constant on the fibers of `q`. Categorically `t`
+coequalizes the kernel pair of `q|_{[θ_min,∞)}`, so it factors uniquely through
+the epi part of `q`'s epi–mono factorization. That factor is the tax schedule:
+`taxSchedule` is the induced map on `im q`, `taxSchedule_apply` the commuting
+triangle `t = taxSchedule ∘ q`, and `taxSchedule_unique` its uniqueness there
+(`taxationPrinciple_impl`, result ⟨6⟩). Cost: IC, nothing else — the statement is
+generic in `A`, so the same factorization posts a price list against winning
+probabilities in the auction setting.
 
-Neither corollary consumes the adjunction `adj_T_Q`. The shared categorical
-ingredient is only `transfer_eq_of_iso` — that an iso in **MechR** equalizes
-transfers — which is a fact about the hom-sets, not about `T ⊣ Q`.
+**Step 2 — revenue equivalence: identify the fiber of the functor `Q`.** Now fix
+an allocation object `r` and look at the fiber `Q⁻¹(r) ⊆ MechR` — the mechanisms
+whose allocation functor-image is `r`, *across objects* this time.
+`envelope_transfer_shift` (`MasterTheorem.lean`) computes every object of that
+fiber as `t = t*_r − V₀`, the envelope transfer `t*_r` shifted down by the
+boundary rent; `T_initial` makes `T(r)` (rent `0`) the initial object; and
+`mechIso_of_sameAlloc_sameRent` shows two objects with equal `V₀` are isomorphic.
+`transfer_eq_of_iso` turns that iso — an iso in a thin category is just a pair of
+arrows — into pointwise-equal transfers on `[θ_min, ∞)`
+(`masterTheorem_transferInvariance_impl`, result ⟨4⟩; `revenueEquivalence_impl`,
+result ⟨5⟩). So the fiber is the poset of admissible boundary rents with `T(r)` at
+the bottom, and revenue equivalence is: *same rent ⟹ same object ⟹ same
+transfer*. Cost: IC **plus** the envelope theorem `surplus_split`, i.e. all of
+Stage 4.
 
-The machinery does collapse the two in one place: the equivalence
-`AllocR ≌ Mech₀`. On *normalised* mechanisms `Q` is not merely faithful but
-invertible, and that is the taxation principle "at full strength" — but it is the
-elementary factorization **plus** the whole envelope layer, so it costs what
-revenue equivalence costs, not what the elementary taxation principle costs. Two
-theorems share the name at very different prices.
+**Step 3 — normalise and the schedule becomes an equivalence.** Setting `V₀ = 0`
+picks out the initial object of each fiber; assembling these is exactly the
+corestriction `AllocR ≌ Mech₀` (`equivAllocMech₀`). On normalised mechanisms `Q`
+is not merely faithful but invertible — the strongest form of "a mechanism is its
+schedule" — but this is Step 1's factorization *plus* the whole of Step 2, so it
+costs what revenue equivalence costs.
 
-The one relation that *is* an identity is between revenue equivalence in the
-**auction** setting and in the **taxation** setting: `revenueEquivalence_impl` and
-`mirrlees_transferInvariance_impl` are the same call to
-`masterTheorem_transferInvariance_impl`, differing only in the value function.
+Two remarks on what is and isn't used:
+
+- **The adjunction `adj_T_Q` ⟨1⟩ is not consumed by either derivation.** The
+  categorical fact both steps rely on is `transfer_eq_of_iso` — a statement about
+  the hom-sets of **MechR** — not about `T ⊣ Q`.
+- **The genuine identity is between the two settings of Step 2**, not between
+  Steps 1 and 2: `revenueEquivalence_impl` and `mirrlees_transferInvariance_impl`
+  are the same call to `masterTheorem_transferInvariance_impl`, differing only in
+  the value function `v`.
+
+| statement | quantifier | needs |
+|---|---|---|
+| `t` factors through `q` (`taxSchedule`) | fibers of `q`, one object | IC |
+| fiber of `Q` over `r` is a rent-family (`T_initial`, `mechIso_of_sameAlloc_sameRent`) | objects with `Q m = r` | IC + envelope theorem |
+| `AllocR ≌ Mech₀` (`equivAllocMech₀`) | all normalised objects | the row above, plus normalisation |
 
 ---
 
