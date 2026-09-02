@@ -55,16 +55,15 @@ modules, not `Corollaries`, keeping the audited surface small.
 
 ```mermaid
 flowchart TD
-    Linters["Linters.lean<br/><i>witness-tracking attributes</i>"]
-    Framework["Framework.lean<br/><i>mechanisms · Mech / Alloc categories · elementary taxation principle</i>"]
-    Myerson["MyersonSetting.lean<br/><i>v(a,θ) = θ·a</i>"]
-    Mirrlees["MirrleesSetting.lean<br/><i>v(y,θ) = θ·h(y) − g(y/θ)</i>"]
-    Master["MasterTheorem.lean<br/><i>envelope theorem · AllocR / MechR / Mech₀ · T ⊣ Q · Master Theorem 4.5</i>"]
-    Corollaries["Corollaries.lean<br/><i>Revenue Equivalence · Mirrlees instance · vacuity theorems · posted-price witness</i>"]
-    Basic["Basic.lean<br/><i>re-export</i>"]
-
-    Challenge["Challenge.lean<br/><i>6 statements + sorry</i>"]
-    Solution["Solution.lean<br/><i>6 proofs → _impl</i>"]
+    Linters["Linters.lean"]
+    Framework["Framework.lean"]
+    Myerson["MyersonSetting.lean"]
+    Mirrlees["MirrleesSetting.lean"]
+    Master["MasterTheorem.lean"]
+    Corollaries["Corollaries.lean"]
+    Basic["Basic.lean"]
+    Challenge["Challenge.lean"]
+    Solution["Solution.lean"]
 
     Linters --> Framework
     Framework --> Myerson
@@ -74,18 +73,18 @@ flowchart TD
     Myerson --> Corollaries
     Mirrlees --> Corollaries
 
+    Framework --> Basic
     Master --> Basic
     Myerson --> Basic
     Mirrlees --> Basic
     Corollaries --> Basic
-    Framework --> Basic
 
     Master --> Challenge
     Myerson --> Challenge
     Mirrlees --> Challenge
     Basic --> Solution
 
-    Challenge -. "Comparator: identical statements" .-> Solution
+    Challenge -.->|"Comparator: identical statements"| Solution
 ```
 
 **Layering, bottom to top**
@@ -119,26 +118,36 @@ corresponding `*_impl` declaration.
 
 ```mermaid
 flowchart TD
-    IC["IC (a field of ICIRMechanism)"]
-    TDA["transfer_depends_only_on_alloc<br/><i>Framework — IC in both directions</i>"]
-    TP["taxationPrinciple ⟨6⟩<br/><i>one mechanism → a tax schedule T with t = T∘q</i>"]
-
-    SS["surplus_split<br/><i>MasterTheorem — the envelope theorem V(θ)=V(θ_min)+∫ ∂v/∂s</i>"]
+    IC["IC: a field of ICIRMechanism"]
+    TDA["transfer_depends_only_on_alloc"]
+    TP["taxationPrinciple - result 6"]
+    SS["surplus_split: the envelope theorem"]
     ETU["envelope_transfer_unique / mechIso_of_sameAlloc_sameRent"]
-    MT4["Master Theorem 4.5<br/>existence ⟨2⟩ · isomorphism ⟨3⟩ · transfer invariance ⟨4⟩"]
-    RE["revenueEquivalence ⟨5⟩<br/><i>Myerson instance of 4.5(iii)</i>"]
-    MI["mirrlees_transferInvariance_impl<br/><i>Mirrlees instance of 4.5(iii) — NOT one of the six</i>"]
+    MT4["Master Theorem 4.5 - results 2, 3, 4"]
+    RE["revenueEquivalence - result 5"]
+    MI["mirrlees_transferInvariance_impl - not one of the six"]
+    ADJ["adj_T_Q - result 1"]
+    NU["no_uniform_lipschitz / no_uniform_hW"]
 
-    ADJ["adj_T_Q ⟨1⟩<br/><i>TR ⊣ QR on the regular subcategories</i>"]
-    NU["no_uniform_lipschitz · no_uniform_hW<br/><i>why ⟨1⟩ must be stated on AllocR/MechR, not Mech</i>"]
-
-    IC --> TDA --> TP
-    IC --> SS --> ETU --> MT4
+    IC --> TDA
+    TDA --> TP
+    IC --> SS
+    SS --> ETU
+    ETU --> MT4
     MT4 --> RE
     MT4 --> MI
     SS --> ADJ
-    NU -. "motivates the restriction in" .-> ADJ
+    NU -.->|"motivates the subcategory restriction"| ADJ
 ```
+
+- `IC` alone gives `transfer_depends_only_on_alloc`, hence `taxationPrinciple`
+  (result 6): one mechanism, a tax schedule `T` with `t = T ∘ q`.
+- `IC` plus the envelope theorem `surplus_split` gives Master Theorem 4.5
+  (results 2–4), and `revenueEquivalence` (result 5) is its Myerson instance;
+  `mirrlees_transferInvariance_impl` is the same call in the Mirrlees setting.
+- `adj_T_Q` (result 1) is `TR ⊣ QR` on the regular subcategories `AllocR` /
+  `MechR`; `no_uniform_lipschitz` and `no_uniform_hW` are why it must be stated
+  there rather than on all of **Mech**.
 
 **Reading the graph**
 
@@ -182,12 +191,12 @@ Three thin categories and two functors, all in `MasterTheorem.lean`:
 ```mermaid
 flowchart LR
     A["AllocR"]
-    Z["Mech₀ — zero rent"]
+    Z["Mech-zero: zero rent"]
     M["MechR"]
-    A -- "T — attach the envelope transfer" --> M
-    M -- "Q — forget the transfer" --> A
-    A -- "T₀  (equivalence ≌)" --> Z
-    Z -- "ι — full subcategory" --> M
+    A -->|"T: attach the envelope transfer"| M
+    M -->|"Q: forget the transfer"| A
+    A -->|"T-zero: an equivalence"| Z
+    Z -->|"inclusion: full subcategory"| M
 ```
 
 `T ⊣ Q` (`adj_T_Q`) is a **coreflection**: the unit `η_r : r ⟶ Q(T r)` is the
