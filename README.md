@@ -18,9 +18,6 @@ surface with identical signatures (`Solution.lean`), and the full development in
 Comparator checks are stated identically in both surfaces and proved with only
 the permitted axioms.
 
-> The stock PalomarTemplate README and the working notes that produced this
-> adaptation are kept in `planning/` (git-ignored) for reference.
-
 ---
 
 ## Repository structure
@@ -201,10 +198,6 @@ is fully faithful. The counit `ε_m : T(Q m) ⟶ m` strips the rent, and
 `equivAllocMech₀ : AllocR ≌ Mech₀` — a normalised mechanism *is* its allocation
 rule. That equivalence is the taxation principle at full strength; the elementary
 `taxationPrinciple` ⟨6⟩ is its shadow inside a single object.
-
-A longer prose account of all of this — including what each setting costs to
-discharge and where the "fiber" in each result lives — is in
-`planning/REVENUE_EQUIVALENCE_AND_TAXATION.md`.
 
 ---
 
