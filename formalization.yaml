@@ -9,7 +9,7 @@ project:
   description: >-
     A Lean 4 formalisation of the categorical unification of Myerson's Revenue
     Equivalence Theorem and the Mirrlees Taxation Principle as instances of a single
-    Master Theorem about the adjunction Q ⊣ T between the categories Mech and Alloc.
+    Master Theorem about the adjunction T ⊣ Q between the categories Mech and Alloc.
   # Required nonempty list of name strings or mappings with a nonempty name.
   authors:
     - "Sander Renes"
@@ -73,12 +73,42 @@ sources:
     location: "Review of Economic Studies, Vol. 38, No. 2, pp. 175-208, 1971"
     relationship: "formalizes"
     id: "DOI:10.2307/2296777"
+  - title: "Straightforward Individual Incentive Compatibility in Large Economies"
+    authors:
+      - "Peter J. Hammond"
+    type: "article"
+    location: "Review of Economic Studies, Vol. 46, No. 2, pp. 263-282, 1979"
+    relationship: "formalizes"
+    note: "Source for the Taxation Principle (MechDesign.taxationPrinciple)."
+  - title: "The Taxation Principle and Multi-Time Hamilton-Jacobi Equations"
+    authors:
+      - "Jean-Charles Rochet"
+    type: "article"
+    location: "Journal of Mathematical Economics, Vol. 14, No. 2, pp. 113-128, 1985"
+    relationship: "formalizes"
+    note: "Source for the Taxation Principle (MechDesign.taxationPrinciple)."
   - title: "Categories for the Working Mathematician"
     authors:
       - "Saunders Mac Lane"
     type: "book"
     location: "Springer-Verlag, 1978"
     relationship: "background"
+  - title: "Envelope Theorems for Arbitrary Choice Sets"
+    authors:
+      - "Paul Milgrom"
+      - "Ilya Segal"
+    type: "article"
+    location: "Econometrica, Vol. 70, No. 2, pp. 583-601, 2002"
+    relationship: "background"
+    note: "Envelope-theorem technique used to derive the surplus derivative from IC."
+  - title: "Optimal Auctions"
+    authors:
+      - "John G. Riley"
+      - "William F. Samuelson"
+    type: "article"
+    location: "American Economic Review, Vol. 71, No. 3, pp. 381-392, 1981"
+    relationship: "background"
+    note: "Independent co-discovery of revenue equivalence, cited alongside Myerson (1981)."
 
 related_formalizations:
   # Remove this field or use [] when none are known.
@@ -88,7 +118,7 @@ status:
   scope: >-
     Formalizes the categorical unification of Myerson's Revenue Equivalence Theorem
     and the Mirrlees Taxation Principle as instances of a single Master Theorem
-    about the adjunction Q ⊣ T. Includes the full proof of the adjunction and
+    about the adjunction T ⊣ Q. Includes the full proof of the adjunction and
     the three parts of the Master Theorem.
   # Count the proof development, excluding Challenge.lean's deliberate sorry.
   # Replace each count with an unquoted nonnegative integer, for example 0.

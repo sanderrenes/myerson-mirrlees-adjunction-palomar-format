@@ -216,9 +216,10 @@ identity (`Q ∘ T = 1` on the nose, by structure eta on `MonotoneAlloc`), so `T
 is fully faithful. The counit `ε_m : T(Q m) ⟶ m` strips the rent, and
 `isIso_counit_iff_zeroRent` proves it is invertible **exactly** when
 `V_m(θ_min) = 0`. Corestricted to zero rent, `T` becomes an equivalence
-`equivAllocMech₀ : AllocR ≌ Mech₀` — a normalised mechanism *is* its allocation
-rule. That equivalence is the taxation principle at full strength; the elementary
-`taxationPrinciple` ⟨6⟩ is its shadow inside a single object.
+`equivAllocMech₀ : AllocR ≌ Mech₀` — a normalised regular mechanism *is* its
+allocation rule. That equivalence is revenue equivalence in its strongest form
+(it needs regularity and the whole of Stage 4); it is **not** the elementary
+`taxationPrinciple` ⟨6⟩, which is a separate one-object statement from IC alone.
 
 ### The taxation principle in category theory
 
@@ -338,4 +339,8 @@ their approval.
 
 - R. B. Myerson, *Optimal Auction Design*, Mathematics of Operations Research 6(1):58–73, 1981. [DOI:10.1287/moor.6.1.58](https://doi.org/10.1287/moor.6.1.58)
 - J. A. Mirrlees, *An Exploration in the Theory of Optimum Income Taxation*, Review of Economic Studies 38(2):175–208, 1971. [DOI:10.2307/2296777](https://doi.org/10.2307/2296777)
+- P. J. Hammond, *Straightforward Individual Incentive Compatibility in Large Economies*, Review of Economic Studies 46(2):263–282, 1979.
+- J.-C. Rochet, *The Taxation Principle and Multi-Time Hamilton–Jacobi Equations*, Journal of Mathematical Economics 14(2):113–128, 1985.
+- J. G. Riley and W. F. Samuelson, *Optimal Auctions*, American Economic Review 71(3):381–392, 1981.
+- P. Milgrom and I. Segal, *Envelope Theorems for Arbitrary Choice Sets*, Econometrica 70(2):583–601, 2002.
 - S. Mac Lane, *Categories for the Working Mathematician*, Springer-Verlag, 1978.
