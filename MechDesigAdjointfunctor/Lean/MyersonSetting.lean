@@ -23,6 +23,7 @@ single-object auction with one-dimensional types.
 ## References
 
 * Myerson (1981), *Optimal Auction Design*, Theorem 2, Lemma 2
+* Riley–Samuelson (1981), *Optimal Auctions*, Am. Econ. Rev. 71(3)
 * Klemperer (1999), *Auction Theory: A Guide to the Literature*, Theorem 1
 -/
 
@@ -67,7 +68,7 @@ lemma myerson_singleCrossing : SingleCrossing myersonValue Set.univ := by
 
 /-! ### 2.3 Differentiability of the Myerson Value Function -/
 
-/-- The Myerson value function `v(q, θ) = θ * q.val` is differentiable (in fact
+/-- The Myerson value function `v(q, θ) = θ * q` is differentiable (in fact
 polynomial) in the type argument `θ`, for any fixed allocation `q`. -/
 lemma myerson_vDiff :
     ∀ (q : MyersonAlloc), DifferentiableOn ℝ (myersonValue q) (Set.Ioi 0) := by
@@ -133,12 +134,13 @@ lemma myerson_IC_of_monotone_transfer (q : ℝ → ℝ) (hq : Monotone q)
     intervalIntegral.integral_add_adjacent_intervals (hq_int 0 θ') (hq_int θ' θ)
   linarith
 
-/-- **Lemma 2.1 (only-if direction)**: If `(q, t)` is BIC with `V(0) = 0`,
-then `q` is monotone and `t = myersonTransfer q`.
+/-- **Lemma 2.1 (only-if direction)**: If `(q, t)` has `V(0) = 0` and the surplus
+`s ↦ s·q s − t s` has derivative `q θ` at every `θ` (`hEnv`), then `t = myersonTransfer q`.
 
-Proof sketch: `V(θ) = max_r U(θ, r)` is convex (max of affine functions), so `q`
-is non-decreasing.  The envelope theorem gives `V'(θ) = q(θ)` a.e.; integrating
-with `V(0) = 0` and substituting yields the formula. -/
+Proof: the FTC gives `∫₀^θ q = (θ·q θ − t θ) − (0·q 0 − t 0)`; the boundary condition
+kills the second bracket, and rearranging is the formula.  (Monotonicity of `q` is *not*
+among the conclusions here — it is packaged with the analogous Mirrlees statement
+`mirrlees_unique_from_IC`, which derives it from IC + SC.) -/
 lemma myerson_transfer_unique {q : ℝ → ℝ} {t : ℝ → ℝ}
     (_hIC : IsIC myersonValue 0 ⟨q, t⟩)
     (hIR : t 0 = 0 * q 0)

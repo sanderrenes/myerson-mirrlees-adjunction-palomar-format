@@ -4,15 +4,18 @@ import MechDesigAdjointfunctor.Lean.MirrleesSetting
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 
 /-!
-# Stage 5: Revenue Equivalence and the Taxation Principle as Corollaries
+# Stage 5: Revenue Equivalence as a Corollary (both settings)
 
 Instantiates the abstract Master Theorem (`MasterTheorem.lean`) in the two
-economic settings to recover the classical results as special cases.
+economic settings to recover the classical revenue-equivalence results as special
+cases.  (The Taxation Principle proper is *not* a corollary of the Master Theorem —
+it is `MechDesign.taxationPrinciple_impl` in `Framework.lean`, from IC alone.)
 
 ## Main declarations
 
-* `MechDesign.Corollaries.revenueEquivalence` — Corollary 5.1: Myerson's Revenue
-  Equivalence Theorem is an instance of Theorem 4.5(iii).
+* `MechDesign.Corollaries.revenueEquivalence_impl` — Corollary 5.1: Myerson's Revenue
+  Equivalence Theorem is an instance of Theorem 4.5(iii).  (Advertised as
+  `MechDesign.revenueEquivalence` in `Solution.lean`.)
 * `MechDesign.Corollaries.mirrlees_transferInvariance_impl` — Corollary 5.2: revenue
   equivalence in the Mirrlees setting, the same instance of Theorem 4.5(iii) with a different
   value function.
@@ -35,13 +38,16 @@ surplus_lipschitzOn   surplus_hasDerivWithinAt   ← Milgrom–Segal (MVT + sque
                ↓
   masterTheorem_transferInvariance
         ↙               ↘
-  Revenue Equivalence     Taxation Principle
-  (Myerson 1981)          (Hammond 1979; Rochet 1985)
+  Revenue Equivalence     Mirrlees transfer invariance
+  (Myerson 1981)          (Myerson 1981, transposed)
 ```
 
-Both corollaries follow from `masterTheorem_transferInvariance_impl.  Only the value function
-differs — `myersonValue` vs `mirrleesValue`.  That is the unification claim, and it is
-literally the same call with a different `v`.
+The Taxation Principle proper is *not* on this chain: it is `taxationPrinciple_impl`
+(`Framework.lean`), one mechanism from IC alone, with none of the envelope machinery above.
+
+Both corollaries follow from `masterTheorem_transferInvariance_impl`.  Only the value
+function differs — `myersonValue` vs `mirrleesValue`.  That is the unification claim, and it
+is literally the same call with a different `v`.
 
 Note what is **not** on this chain: `adj_T_Q`.  The adjunction is proved structure *about*
 the framework, not a lemma the corollaries consume.  The categorical content they do use is
@@ -55,8 +61,10 @@ IR.  SC makes `T` a functor; IR orients the adjunction; revenue equivalence need
 
 * Myerson (1981), *Optimal Auction Design*, Theorem 2
 * Riley–Samuelson (1981), *Optimal Auctions*, Theorem 1
-* Hammond (1979), *Straightforward Incentive Compatibility*, Theorem 1
-* Rochet (1985), *The Taxation Principle*, Proposition 1
+* Milgrom–Segal (2002), *Envelope Theorems for Arbitrary Choice Sets*, Econometrica 70(2)
+* Mirrlees (1971), *An Exploration in the Theory of Optimum Income Taxation*, Rev. Econ. Stud. 38(2)
+* Hammond (1979), *Straightforward Individual Incentive Compatibility in Large Economies*, Theorem 1
+* Rochet (1985), *The Taxation Principle and Multi-Time Hamilton–Jacobi Equations*, Proposition 1
 -/
 
 open MeasureTheory MechDesign
@@ -175,10 +183,12 @@ allocation rule** `q` and the same boundary rent satisfy
 hence also `𝔼[t₁] = 𝔼[t₂]` for any finite measure on types (`transferInvariance_integral`).
 The pointwise form is what the envelope theorem gives; the expectation is packaging.
 
-*Proof*: Instantiate `masterTheorem_transferInvariance_impl with the Myerson value function.
-SC holds by `myerson_singleCrossing`.  The expected transfer equals
-`𝔼[ψ(θ) · q(θ)]` where `ψ(θ) = θ - (1-F(θ))/f(θ)` is the virtual valuation,
-which depends only on `q` and the type distribution `F`.
+*Proof*: Instantiate `masterTheorem_transferInvariance_impl` with the Myerson value
+function; differentiability of `v` in the type is `myerson_vDiff`.  No single-crossing
+hypothesis is consumed — transfer invariance needs only IC (from which continuity and the
+one-sided envelope derivative are derived).  The virtual-valuation form of the *expected*
+transfer, `𝔼[ψ(θ)·q(θ)]` with `ψ(θ) = θ - (1-F(θ))/f(θ)`, is a separate result
+(`myerson_revenueFormula` / `Myerson.myerson_expectedRevenue`).
 
 *Reference*: Myerson (1981), Theorem 2; Riley–Samuelson (1981). -/
 theorem revenueEquivalence_impl
@@ -230,7 +240,11 @@ theorem myerson_revenueFormula (q : ℝ → ℝ) (F f : ℝ → ℝ)
     ∫ θ in (0:ℝ)..1, (θ - (1 - F θ) / f θ) * q θ * f θ :=
   Myerson.myerson_expectedRevenue q F f hf_pos hq_int hq_cont hf_cont hFf hF0 hF1
 
-/-! ### 5.2 Taxation Principle (Corollary 5.2) -/
+/-! ### 5.2 Revenue equivalence in the Mirrlees setting (Corollary 5.2)
+
+The taxation principle proper is `MechDesign.taxationPrinciple_impl` (`Framework.lean`),
+IC-only, one mechanism.  What instantiates the Master Theorem here is its *comparison*
+counterpart: two mechanisms with the same income schedule and rent levy the same tax. -/
 
 /-- **Revenue equivalence in the Mirrlees setting** — the taxation counterpart of
 `revenueEquivalence_impl`, and the same theorem with `v := mirrleesValue`.

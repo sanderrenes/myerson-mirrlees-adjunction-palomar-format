@@ -23,6 +23,8 @@ Myerson's Revenue Equivalence Theorem and the Mirrlees Taxation Principle.
 * Mac Lane (1978), *Categories for the Working Mathematician*, Chapter IV
 * Myerson (1981), *Optimal Auction Design*
 * Mirrlees (1971), *An Exploration in the Theory of Optimum Income Taxation*
+* Hammond (1979), *Straightforward Individual Incentive Compatibility in Large Economies*, Theorem 1
+* Rochet (1985), *The Taxation Principle and Multi-Time Hamilton–Jacobi Equations*, Proposition 1
 -/
 
 namespace MechDesign
@@ -159,8 +161,9 @@ theorem masterTheorem_rentExtraction {A : Type*} [LinearOrder A]
   sorry
 
 /-- **Revenue Equivalence Theorem** (Myerson 1981): any two BIC-IR mechanisms with the same
-allocation rule and the same boundary rent charge the same transfer at every physical type —
-hence raise the same expected revenue under any distribution of types. -/
+allocation rule and the same boundary rent charge the same transfer at every physical type.
+(Integrating against any finite measure on types then gives the equal-expected-revenue form,
+`transferInvariance_integral` — no distributional hypothesis enters.) -/
 theorem revenueEquivalence
     (θ_min : ℝ) (hθ_pos : 0 < θ_min)
     (q₀ : MonotoneAlloc Myerson.MyersonAlloc)

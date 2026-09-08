@@ -6,6 +6,14 @@ import MechDesigAdjointfunctor.Basic
 This module may import the full proof development. Comparator checks that the
 declaration below has exactly the same statement as its counterpart in
 `Challenge.lean` and uses only the permitted axioms.
+
+## References
+
+* Mac Lane (1978), *Categories for the Working Mathematician*, Chapter IV
+* Myerson (1981), *Optimal Auction Design*
+* Mirrlees (1971), *An Exploration in the Theory of Optimum Income Taxation*
+* Hammond (1979), *Straightforward Individual Incentive Compatibility in Large Economies*, Theorem 1
+* Rochet (1985), *The Taxation Principle and Multi-Time Hamilton–Jacobi Equations*, Proposition 1
 -/
 
 namespace MechDesign
@@ -41,7 +49,12 @@ allocation `r.q` and zero rent has the same transfer at every physical type.
 
 Uniqueness is stated on `[θ_min, ∞)` rather than as `∃!` because `IsIC`/`IsIR` constrain a
 mechanism only there: two objects may differ below `θ_min` and satisfy every hypothesis, so
-structural uniqueness is false.  The content is the envelope theorem, i.e. IC. -/
+structural uniqueness is false.  The content is the envelope theorem, i.e. IC.
+
+Hypotheses: single crossing `hSC` on `D ⊇ (0,∞)`; differentiability `hdiff` of `v` in the
+type on `(0,∞)`; interval integrability `hint`/`hintC`; and, on the fiber `r.q`, a
+Lipschitz-in-type bound `hvLip` and one-sided continuity `hW` of the envelope integrand
+(these mention only `r.q`, so — unlike object-quantified versions — they are satisfiable). -/
 theorem masterTheorem_existence {A : Type*} [LinearOrder A]
     {v : A → ℝ → ℝ} {θ_min : ℝ}
     (hθ_pos : 0 < θ_min) {D : Set ℝ} (hSC : SingleCrossing v D) (hD_Ioi : Set.Ioi 0 ⊆ D)
@@ -61,7 +74,14 @@ theorem masterTheorem_existence {A : Type*} [LinearOrder A]
         ∀ θ, θ_min ≤ θ → m'.mech.t θ = m.mech.t θ :=
   masterTheorem_existence_impl hθ_pos hSC hD_Ioi r hdiff hint hintC L hvLip hW
 
--- Theorem 4.5(ii) — Isomorphism
+/-- **Theorem 4.5(ii) — Isomorphism**: every BIC-IR mechanism `m` with allocation `r.q` and
+zero boundary rent (`hBC : v (q θ_min) θ_min = t θ_min`) is isomorphic in **Mech** to `T(r)`.
+Under the surplus order this one statement already carries the economics — an iso in **Mech**
+forces equal transfers (`transfer_eq_of_iso`).
+
+Hypotheses beyond `hm`, `hBC`: single crossing `hSC`, differentiability `hdiff`, interval
+integrability `hint`/`hintC`, the Lipschitz-in-type bound `hvLip` on `m`'s allocation, and
+one-sided continuity `hW` of the envelope integrand along `r.q`. -/
 theorem masterTheorem_isomorphism {A : Type*} [LinearOrder A]
     {v : A → ℝ → ℝ} {θ_min : ℝ}
     (hθ_pos : 0 < θ_min) {D : Set ℝ} (hSC : SingleCrossing v D) (hD_Ioi : Set.Ioi 0 ⊆ D)
@@ -84,7 +104,12 @@ allocation rule and the **same boundary rent** charge the same transfer at every
 
 Pointwise, not in expectation: this is what the envelope theorem gives, and the expected-revenue
 form follows by integrating it against any finite measure (`transferInvariance_integral`) — no
-distributional hypothesis enters anywhere. -/
+distributional hypothesis enters anywhere.
+
+Hypotheses: `hm₁`, `hm₂` (both allocations equal `r.q`) and `hV₀` (equal boundary rent — not
+zero rent); plus differentiability `hdiff`, interval integrability `hint`, Lipschitz-in-type
+bounds `hvLip₁`/`hvLip₂`, and one-sided continuity `hW` of the envelope integrand along `r.q`.
+No single crossing and no IR are used. -/
 theorem masterTheorem_transferInvariance {A : Type*} [LinearOrder A]
     {v : A → ℝ → ℝ} {θ_min : ℝ}
     (hθ_pos : 0 < θ_min)
@@ -142,8 +167,15 @@ theorem masterTheorem_rentExtraction {A : Type*} [LinearOrder A]
     Lr hrLip hrW m hle hmInt Lm hmLip hmW
 
 /-- **Revenue Equivalence Theorem** (Myerson 1981): any two BIC-IR mechanisms with the same
-allocation rule and the same boundary rent charge the same transfer at every physical type —
-hence raise the same expected revenue under any distribution of types. -/
+allocation rule and the same boundary rent charge the same transfer at every physical type.
+(Integrating this pointwise equality against any finite measure on types gives the
+equal-expected-revenue form — `transferInvariance_integral`; no distributional hypothesis
+enters.)
+
+Hypotheses: value function `θ·q` (Myerson); Lipschitz-in-type bounds `hvLip₁`, `hvLip₂` on
+the allocations the two mechanisms use, and one-sided continuity `hW` of the envelope
+integrand along `q₀` (continuity and the envelope derivative of the surplus are *derived*
+from IC, not assumed); interval integrability `hint`. -/
 theorem revenueEquivalence
     (θ_min : ℝ) (hθ_pos : 0 < θ_min)
     (q₀ : MonotoneAlloc Myerson.MyersonAlloc)

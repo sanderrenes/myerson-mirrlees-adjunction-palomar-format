@@ -19,7 +19,10 @@ optimal nonlinear income taxation model, recovering the **Taxation Principle**
 
 ## Summary
 
-* Allocation space `A = ℝ≥0` — gross income `y`.
+* Allocation space `A = ℝ` — gross income `y`.  Nonnegativity of income is the intended
+  economic reading but is **not** imposed: an allocation rule is any `Monotone q : ℝ → ℝ`,
+  so the results hold for arbitrary real-valued `y` (and would need an explicit
+  `0 ≤ q θ` hypothesis if that reading were to be enforced).
 * Value function: quasilinear approximation `v(y, θ) = θ * h(y) - g(y/θ)` where
   `h` is the value of income and `g` is the disutility of effort.
 * SC-M (Spence-Mirrlees condition): MRS between income and consumption decreasing in `θ`.
@@ -32,10 +35,12 @@ optimal nonlinear income taxation model, recovering the **Taxation Principle**
 
 ## References
 
-* Mirrlees (1971), *Optimal Income Taxation*, Sections 2–6, Eqs. (26)–(27)
-* Hammond (1979), *Straightforward Individual Incentive Compatibility*, Theorem 1
-* Rochet (1985), *The Taxation Principle and Multi-Time HJE*, Proposition 1
+* Mirrlees (1971), *An Exploration in the Theory of Optimum Income Taxation*, Sections 2–6, Eqs. (26)–(27)
+* Hammond (1979), *Straightforward Individual Incentive Compatibility in Large Economies*, Theorem 1
+* Rochet (1985), *The Taxation Principle and Multi-Time Hamilton–Jacobi Equations*, Proposition 1
 * Seade (1977), *On the Shape of Optimal Tax Schedules*
+* Fudenberg–Tirole (1991), *Game Theory*, Ch. 7
+* Diamond–Saez (2011), *The Case for a Progressive Tax*, J. Econ. Perspectives 25(4)
 -/
 
 open MeasureTheory intervalIntegral Filter
@@ -163,7 +168,7 @@ lemma mirrlees_vDiff (h g : ℝ → ℝ) (_hh : Differentiable ℝ h) (hg : Diff
       (DifferentiableOn.div (differentiableOn_const y) differentiableOn_id (fun x hx => hx.ne'))
       (fun x _ => Set.mem_univ _))
 
-/-! ### 3.2 IC Characterisation and the Taxation Principle (Lemma 3.1) -/
+/-! ### 3.2 IC Characterisation via the envelope formula (Lemma 3.1) -/
 
 /-- The **Mirrlees envelope transfer formula**: the unique consumption rule `c(θ)` that,
 paired with a monotone income assignment `y(θ)`, yields an IC mechanism with
@@ -181,7 +186,7 @@ principle — for that see `MechDesign.taxSchedule` (`Framework.lean`), which is
 the allocation and is what `MechDesign.taxationPrinciple_impl` produces. -/
 noncomputable def taxSchedule (y c : ℝ → ℝ) (θ : ℝ) : ℝ := y θ - c θ
 
-/-- **Lemma 3.1 (Taxation Principle — if direction)**: if `y(θ)` is monotone and `V`
+/-- **Lemma 3.1 (envelope characterisation — if direction)**: if `y(θ)` is monotone and `V`
 satisfies the envelope formula, then the mechanism `(y, c)` is IC.
 
 Proof sketch: for a misreport `r`, the payoff difference is
@@ -277,10 +282,12 @@ lemma mirrlees_IC_of_envelope (v : ℝ → ℝ → ℝ) (vθ_partial : ℝ → �
     rw [hIθ'θ_def, h1]
     linarith [h2]
 
-/-- **Lemma 3.1 (Taxation Principle — only-if direction)**: if `(y(θ), c(θ))` is IC
-with `V(θ_min) = V₀`, then `y` is monotone and the rent `V(θ)` satisfies the envelope
-formula.  Moreover, the tax schedule `T(y) = y - c(y)` is uniquely determined by
-`y(θ)` and `V₀`.
+/-- **Lemma 3.1 (envelope characterisation — only-if direction)**: if `(y(θ), t(θ))` is IC
+with `V(θ_min) = V₀`, then `y` is non-decreasing on `[θ_min, ∞)` and the transfer `t(θ)` is
+pinned pointwise by `y` and `V₀` via the envelope formula
+`t(θ) = v(y θ, θ) − (V₀ + ∫_{θ_min}^θ ∂v/∂s)`.  (This fixes `t` as a function of the *type*;
+it does not by itself produce a schedule indexed by *income* — that is the taxation
+principle proper, `MechDesign.taxationPrinciple_impl`.)
 
 Proof sketch: `V(θ) = max_r U(θ,r)` is convex (max of functions with the Spence-Mirrlees
 property), so `y` is non-decreasing (MON).  The envelope theorem gives
@@ -314,13 +321,14 @@ lemma mirrlees_unique_from_IC (v : ℝ → ℝ → ℝ) (vθ_partial : ℝ → �
 
 /-- **Two IC mechanisms with the same income schedule and the same rent levy the same tax.**
 
-This is revenue equivalence in the Mirrlees setting, not the taxation principle: it compares
-two mechanisms.  (The taxation principle proper is `MechDesign.taxationPrinciple_impl`.)  It is
-also superseded by `Corollaries.mirrlees_transferInvariance_impl`, which needs only a *right*
+This is revenue equivalence in the Mirrlees setting (it compares *two* mechanisms), not the
+taxation principle proper (`MechDesign.taxationPrinciple_impl`, one mechanism).  It is
+superseded by `Corollaries.mirrlees_transferInvariance_impl`, which needs only a *right*
 derivative of the surplus; the two-sided `hEnv` assumed here is unsatisfiable for a mechanism
-with a kink — see `Corollaries.PostedPrice.postedPrice_not_hasDerivAt`.
-*Reference*: Myerson (1981), Theorem 2, transposed; Hammond (1979); Rochet (1985). -/
-theorem taxation_principle (v : ℝ → ℝ → ℝ) (vθ_partial : ℝ → ℝ)
+with a kink — see `Corollaries.PostedPrice.postedPrice_not_hasDerivAt`.  Kept only as the
+elementary two-sided-derivative version; nothing downstream consumes it.
+*Reference*: Myerson (1981), Theorem 2, transposed. -/
+theorem mirrlees_revenueEquivalence_twoSided (v : ℝ → ℝ → ℝ) (vθ_partial : ℝ → ℝ)
     (V₀ θ_min : ℝ) (y₁ y₂ t₁ t₂ : ℝ → ℝ)
     (_hIC₁ : IsIC v θ_min ⟨y₁, t₁⟩) (hIR₁ : v (y₁ θ_min) θ_min - t₁ θ_min = V₀)
     (_hIC₂ : IsIC v θ_min ⟨y₂, t₂⟩) (hIR₂ : v (y₂ θ_min) θ_min - t₂ θ_min = V₀)

@@ -12,7 +12,7 @@ import Mathlib.Topology.Perfect
 import Mathlib.Topology.Order.DenselyOrdered
 
 /-!
-# Stage 4: The Master Theorem — Adjunction Q ⊣ T
+# Stage 4: The Master Theorem — Adjunction T ⊣ Q
 
 Proves the abstract categorical Master Theorem: on the **regular** subcategories the
 transfer functor **T : AllocR → MechR** is left adjoint to the allocation functor
@@ -39,23 +39,25 @@ setting.  See the design note on `adj_T_Q_impl`.
 * `MechDesign.adj_T_Q` — the adjunction `T ⊣ Q` (Theorem 4.3); `T` is the **left** adjoint
 * `MechDesign.T_initial` — `T(q)` is **initial** in **Mech_q** (Corollary 4.4)
 * `MechDesign.surplus_split` — the envelope theorem in surplus form; the fiber structure
-* `MechDesign.envelope_transfer_le` — any BIC-IR transfer is dominated by `t*`
+* `MechDesign.envelope_transfer_le` — any BIC-IR transfer with allocation `r.q` is dominated by `t*`
 * `MechDesign.envelope_transfer_shift` — `m.t θ = t*(θ) - V_m(θ_min)` (no boundary cond.)
 * `MechDesign.envelope_transfer_unique` — with `V(θ_min) = 0`, that transfer *is* `t*`
 * `MechDesign.transfer_eq_of_iso` — an iso in **Mech** forces equal transfers
 * `MechDesign.zeroRent_of_iso_TQ`, `MechDesign.isIso_counit_iff_zeroRent` — the counit is
   invertible exactly at zero rent
-* `MechDesign.Mech₀`, `MechDesign.equivAllocMech₀` — `AllocR ≌ Mech₀` (Taxation Principle)
+* `MechDesign.Mech₀`, `MechDesign.equivAllocMech₀` — `AllocR ≌ Mech₀` (normalised form of
+  the adjunction: revenue equivalence, categorically)
 * `MechDesign.masterTheorem_existence` — existence and uniqueness (Thm 4.5 i)
-* `MechDesign.masterTheorem_isomorphism_impl — every BIC mechanism ≅ `T(q)` (Thm 4.5 ii)
+* `MechDesign.masterTheorem_isomorphism_impl` — every BIC mechanism ≅ `T(q)` (Thm 4.5 ii)
 * `MechDesign.masterTheorem_transferInvariance` — transfer invariance (Thm 4.5 iii)
 
 ## References
 
 * Mac Lane (1978), *Categories for the Working Mathematician*, Chapter IV
 * Myerson (1981), *Optimal Auction Design*, Theorem 2
-* Hammond (1979), *Straightforward Incentive Compatibility*, Theorem 1
-* Rochet (1985), *The Taxation Principle*, Proposition 1
+* Milgrom–Segal (2002), *Envelope Theorems for Arbitrary Choice Sets*, Econometrica 70(2)
+* Hammond (1979), *Straightforward Individual Incentive Compatibility in Large Economies*, Theorem 1
+* Rochet (1985), *The Taxation Principle and Multi-Time Hamilton–Jacobi Equations*, Proposition 1
 -/
 
 open CategoryTheory CategoryTheory.Limits MeasureTheory Filter
@@ -473,17 +475,19 @@ one-parameter family indexed by the boundary rent `V_m(θ_min)`; `T(r)` is the m
 rent `0`; IR says the rent is `≥ 0`; and revenue equivalence says the transfer depends on
 the mechanism only through the rent.
 
-**The envelope hypothesis is one-sided, and it has to be.**  `hEnv` asks only for a *right*
-derivative of the surplus (`HasDerivWithinAt … (Set.Ioi θ) θ`), together with continuity.
-A two-sided `HasDerivAt` would be **false** for the mechanisms that matter: a posted price
-with reserve `p` (`q θ = 1{p ≤ θ}`, monotone, IC, IR) has surplus `V θ = max (θ - p) 0`,
-which has a *kink* at `p` and no derivative there.  The right derivative survives the kink —
-at `p` it is `1 = q p = D p` — so the envelope identity holds while two-sidedness does not.
-Mathlib's `integral_eq_sub_of_hasDeriv_right` needs exactly this much.
+**The envelope derivative is used one-sided, and it has to be.**  This proof takes only a
+*right* derivative of the surplus — `surplus_hasDerivWithinAt` supplies
+`HasDerivWithinAt … (Set.Ioi θ) θ`, together with continuity, and *both are derived from IC*,
+not assumed (there is no `hEnv` hypothesis).  A two-sided `HasDerivAt` would be **false** for
+the mechanisms that matter: a posted price with reserve `p` (`q θ = 1{p ≤ θ}`, monotone, IC,
+IR) has surplus `V θ = max (θ - p) 0`, which has a *kink* at `p` and no derivative there.
+The right derivative survives the kink — at `p` it is `1 = q p = D p` — so the envelope
+identity holds while two-sidedness does not.  Mathlib's `integral_eq_sub_of_hasDeriv_right`
+needs exactly this much.
 
-Demanding `HasDerivAt` would exclude every auction with a reserve price and every allocation
-with a bunching region.  See `postedPrice_hasEnvelope` for the mechanism that forces the
-issue. -/
+An earlier version assumed the derivative as a hypothesis; demanding `HasDerivAt` there would
+have excluded every auction with a reserve price and every allocation with a bunching region.
+`postedPrice_hasEnvelope` exhibits the mechanism that forced the issue. -/
 theorem surplus_split {A : Type*} [LinearOrder A]
     {v : A → ℝ → ℝ} {θ_min : ℝ} (hθ_pos : 0 < θ_min)
     (r : MonotoneAlloc A)
@@ -1214,14 +1218,14 @@ theorem transferInvariance_integral {A : Type*} [LinearOrder A]
 /-- **Transfer invariance, routed through `T`** — the categorical derivation.
 
 For *normalised* mechanisms (zero rent), this proves Theorem 4.5(iii) by going through the
-transfer functor: each mechanism is isomorphic to `T(r)` (`masterTheorem_isomorphism_impl), so
-they are isomorphic to each other, and an isomorphism in **Mech** forces equal transfers
+transfer functor: each mechanism is isomorphic to `T(r)` (`masterTheorem_isomorphism_impl`),
+so they are isomorphic to each other, and an isomorphism in **Mech** forces equal transfers
 (`transfer_eq_of_iso`).
 
 `masterTheorem_transferInvariance` proves the *more general* equal-rent statement directly,
 without `T`.  This variant exists to demonstrate that the categorical route is genuinely
 available — `T` and the isomorphism are not decorative — and to give
-`masterTheorem_isomorphism_impl a consumer. -/
+`masterTheorem_isomorphism_impl` a consumer. -/
 theorem transferInvariance_via_T {A : Type*} [LinearOrder A]
     {v : A → ℝ → ℝ} {θ_min : ℝ}
     (hθ_pos : 0 < θ_min) {D : Set ℝ} (hSC : SingleCrossing v D) (hD_Ioi : Set.Ioi 0 ⊆ D)
@@ -1249,14 +1253,14 @@ theorem transferInvariance_via_T {A : Type*} [LinearOrder A]
   -- m₁ ≅ T(r) ≅ m₂
   exact fun θ hθ => transfer_eq_of_iso (i₁ ≪≫ i₂.symm) θ hθ
 
-/-! ### 4.6 The normalized subcategory **Mech₀** and the equivalence `Alloc ≃ Mech₀`
+/-! ### 4.6 The normalized subcategory **Mech₀** and the equivalence `AllocR ≌ Mech₀`
 
 The three-move architecture of the Master Theorem:
 
-* **Move 1 (general).**  `T ⊣ Q` on all of **Mech** (`adj_T_Q`).  `T` is fully faithful
-  (`T_full`, `T_faithful`), and `T(r)` is *initial* in its fiber (`T_initial`): it is the
-  rent-extracting mechanism.  The fiber of `Q` over `r` is a one-parameter family indexed
-  by the boundary rent `V(θ_min) ≥ 0` (`surplus_split`).
+* **Move 1 (general).**  `T ⊣ Q` on the regular subcategories (`adj_T_Q`).  The unrestricted
+  `T` is fully faithful (`T_full`, `T_faithful`), and `T(r)` is *initial* in its fiber
+  (`T_initial`): it is the rent-extracting mechanism.  The fiber of `Q` over `r` is a
+  one-parameter family indexed by the boundary rent `V(θ_min) ≥ 0` (`surplus_split`).
 
 * **Move 2 (the comonad).**  `T ∘ Q` strips the rent: `surplus (T (Q m)) θ_min = 0`
   (`zeroRent_TQ`).  Its counit `ε_m : T(Q(m)) ⟶ m` is the "remove the lowest type's rent"
@@ -1264,10 +1268,12 @@ The three-move architecture of the Master Theorem:
   `isIso_counit_iff_zeroRent`, so `Mech₀` is the *invertibility locus* of `ε` and not merely a
   subcategory where invertibility happens to hold.
 
-* **Move 3 (normalized).**  On the full subcategory `Mech₀` of zero-rent mechanisms, the
-  counit is an isomorphism, so `T ⊣ Q` upgrades to an **adjoint equivalence**
-  `Alloc ≌ Mech₀` (`equivAllocMech₀`) — adjoint in *both* directions.  This is the
-  Taxation Principle: normalized mechanisms *are* allocations.
+* **Move 3 (normalized).**  On the full subcategory `Mech₀` of regular zero-rent mechanisms,
+  the counit is an isomorphism, so `T ⊣ Q` upgrades to an **adjoint equivalence**
+  `AllocR ≌ Mech₀` (`equivAllocMech₀`) — adjoint in *both* directions.  This is revenue
+  equivalence packaged categorically: once the rent is normalised, a regular mechanism
+  carries no information beyond its allocation rule.  (It is *not* the elementary Taxation
+  Principle, which is `taxationPrinciple_impl` — one mechanism, IC only, no regularity.)
 
 Note the division of labour.  The content lives in Move 1 (that `T` exists at all —
 `T_wellDefined`) and Move 2 (that the counit is iso precisely at zero rent).  Once those
@@ -1400,12 +1406,18 @@ noncomputable def Q₀ {A : Type*} [LinearOrder A]
   (RegAlloc v θ_min).lift ((RegZeroRent v θ_min).ι ⋙ Q (θ_min := θ_min) hSC hD)
     (fun m => m.property.1)
 
-/-- **Move 3 — the Taxation Principle as an equivalence of categories.**
+/-- **Move 3 — the normalised form of the adjunction: an equivalence of categories.**
 
 `AllocR ≌ Mech₀`: regular monotone allocation rules and regular zero-rent BIC-IR mechanisms
 are the same thing, up to natural isomorphism.  Consequently `T₀ ⊣ Q₀` *and* `Q₀ ⊣ T₀` — the
 two functors are adjoint in both directions, which is exactly what an adjoint equivalence
 gives.
+
+This is revenue equivalence in categorical form (once the rent is normalised the payment
+rule is redundant data), and it reconstructs the payment via the envelope integral `T₀`.
+It is heavier than — and should not be conflated with — the elementary Taxation Principle
+`taxationPrinciple_impl`, which produces an allocation-indexed schedule for a *single*
+mechanism from IC alone, with no regularity and no normalisation.
 
 - The unit `𝟭 AllocR ≅ Q₀ ∘ T₀` is the identity: `Q(T(r)).q = r.q` definitionally.
 - The counit `T₀ ∘ Q₀ ≅ 𝟭 Mech₀` is where the work is: for a *zero-rent* `m`, stripping the
@@ -1418,7 +1430,8 @@ invertible precisely when `m` has zero rent — both directions in `isIso_counit
 That is the content of the normalisation: `Mech₀` is exactly where `ε` is invertible, so it is
 exactly where the adjunction can upgrade.
 
-*Reference*: Hammond (1979), Theorem 1; Rochet (1985), Proposition 1. -/
+*Reference*: Mac Lane (1978), Chapter IV (adjoint equivalences); cf. Hammond (1979),
+Rochet (1985) for the elementary taxation principle. -/
 noncomputable def equivAllocMech₀ {A : Type*} [LinearOrder A]
     {v : A → ℝ → ℝ} {θ_min : ℝ}
     (hθ_pos : 0 < θ_min) {D : Set ℝ} (hSC : SingleCrossing v D)

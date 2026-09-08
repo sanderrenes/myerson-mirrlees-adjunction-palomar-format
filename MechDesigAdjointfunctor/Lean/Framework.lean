@@ -12,10 +12,12 @@ import Mathlib.Order.CompleteLattice.Basic
 # Stage 1: Abstract Categorical Framework
 
 Defines the categories **Mech** and **Alloc**, the forgetful functor
-**Q : Mech → Alloc**.  
+**Q : Mech → Alloc**.
 
-Note: **Alloc** completeness and **Q** preserving limits (the prerequisites for the adjunction Q ⊣ T)
-are proved in `MasterTheorem.lean` (see `alloc_hasLimits` and `QR_preservesLimits`).
+Note: on the regular subcategories the right adjoint **Q** of `T ⊣ Q` preserves all small
+limits and the left adjoint **T** preserves all small colimits.  Both are proved in
+`MasterTheorem.lean` *as consequences of the adjunction* (see `QR_preservesLimits` and
+`TR_preservesColimits`), not as inputs to it.
 
 ## Main declarations
 
@@ -28,13 +30,15 @@ are proved in `MasterTheorem.lean` (see `alloc_hasLimits` and `QR_preservesLimit
 * `MechDesign.taxSchedule`, `MechDesign.taxationPrinciple_impl` — implementation of the Taxation Principle:
   a schedule on allocations implements any IC mechanism, uniquely on the range
 * `MechDesign.Q` — forgetful functor Q : Mech → Alloc
-* `MechDesign.IC_implies_monotone` — condition MON from IC + SC (Lemma 1.7 precursor)
+* `MechDesign.IC_implies_monotone` — condition MON from IC + SC
 
 ## References
 
 * Mac Lane (1978), *Categories for the Working Mathematician*, Chapters III–V
 * Myerson (1981), *Optimal Auction Design*, Lemma 2
 * Mirrlees (1971), *An Exploration in the Theory of Optimum Income Taxation*, Eq. (27)
+* Hammond (1979), *Straightforward Individual Incentive Compatibility in Large Economies*, Theorem 1
+* Rochet (1985), *The Taxation Principle and Multi-Time Hamilton–Jacobi Equations*, Proposition 1
 -/
 
 open CategoryTheory CategoryTheory.Limits MeasureTheory
@@ -74,9 +78,12 @@ structural, not cosmetic:
   family, indexed by the boundary rent `V(θ_min) ≥ 0` (see `surplus_split`).  `T(r)` is
   the zero-rent member, hence *initial* in its fiber, and the adjunction runs `T ⊣ Q`
   (`adj_T_Q`).  IR is what orients it — it is used essentially in the counit.
-* The normalisation `V(θ_min) = 0` cuts out the full subcategory `Mech₀` (`ZeroRent`),
+* The normalisation `V(θ_min) = 0` cuts out the full subcategory `Mech₀` (`RegZeroRent`),
   on which the counit becomes invertible and `T ⊣ Q` upgrades to an adjoint equivalence
-  `AllocR ≌ Mech₀` (`equivAllocMech₀`) — the Taxation Principle.
+  `AllocR ≌ Mech₀` (`equivAllocMech₀`) — normalised regular mechanisms are, up to
+  isomorphism, their allocation rules.  That is the categorical/normalised packaging of
+  revenue equivalence; the elementary Taxation Principle of Hammond–Rochet is a separate,
+  IC-only statement about a single mechanism (`taxationPrinciple_impl`).
 
 So `Mech` is *not* the category of normalised mechanisms; `Mech₀` is. -/
 def IsIR {A : Type*} (v : A → ℝ → ℝ) (θ_min : ℝ) (m : Mechanism A) : Prop :=
@@ -273,9 +280,10 @@ theorem taxationPrinciple_impl {A : Type*} [Preorder A]
 
 /-! ### 1.6 The Allocation Functor **Q : Mech → Alloc** (Definition 1.6) -/
 
-/-- **Condition MON from IC + SC** (precursor to Lemma 1.7): every BIC mechanism has a
-non-decreasing allocation rule.  Proof sketch: if `q` were decreasing over some
-interval, a mimicry deviation by higher types would be profitable, violating IC.
+/-- **Condition MON from IC + SC**: on `[θ_min, ∞)`, every BIC mechanism (given SC on `D ⊇`
+the physical domain) has a non-decreasing allocation rule.  Proof sketch: if `q` were
+decreasing over some interval, a mimicry deviation by higher types would be profitable,
+violating IC.
 *Reference*: Myerson (1981) Lemma 2; Mirrlees (1971) Eq. (27). -/
 lemma IC_implies_monotone {A : Type*} [LinearOrder A] {v : A → ℝ → ℝ} {θ_min : ℝ}
     {D : Set ℝ} (hSC : SingleCrossing v D) (hD : ∀ θ, θ ∈ D)
@@ -304,12 +312,13 @@ noncomputable def Q {A : Type*} [LinearOrder A]
   map_id _     := by apply @Subsingleton.elim _ allocHom_subsingleton
   map_comp _ _ := by apply @Subsingleton.elim _ allocHom_subsingleton
 
-/-! ### 1.7 Q Preserves Colimits (Lemma 1.7) -/
+/-! ### 1.7 T preserves colimits, Q preserves limits (Lemma 1.7) -/
 
--- **Lemma 1.8**: Q preserves all small colimits because it is the left adjoint in Q ⊣ T.
--- The proof requires `adj_T_Q_impl` (defined in `MasterTheorem.lean`, which imports this
--- file), so it lives there as `MechDesign.TR_preservesColimits` / `MechDesign.QR_preservesLimits`
--- — on the regular subcategories, where the adjunction is not vacuous.
--- *Reference*: Mac Lane (1978), Chapter V, Theorem 5.1 (left adjoints preserve colimits).
+-- **Lemma 1.7**: in `T ⊣ Q`, the left adjoint `T` preserves all small colimits and the
+-- right adjoint `Q` preserves all small limits.  Both proofs require `adj_T_Q_impl`
+-- (defined in `MasterTheorem.lean`, which imports this file), so they live there as
+-- `MechDesign.TR_preservesColimits` / `MechDesign.QR_preservesLimits` — on the regular
+-- subcategories, where the adjunction is not vacuous.
+-- *Reference*: Mac Lane (1978), Chapter V, Theorem 5.1 (adjoints preserve (co)limits).
 
 end MechDesign
