@@ -324,6 +324,18 @@ Optional documentation build:
 
 ---
 
+## Relation to `MechDesigAdjointfunctor.lean`
+
+This repository is not just a repackaging of the development in `MechDesigAdjointfunctor.lean`. As of 2026-11-01 it is ahead of it in content
+and behind it in Lean version:
+
+- It states the adjunction `T ⊣ Q` on the regular subcategories `AllocR` / `MechR`. The version on all of **Mech** (the one in the other
+  repository) carries hypotheses that cannot hold for Myerson (`Corollaries.no_uniform_lipschitz`, `Corollaries.no_uniform_hW`), so it is vacuous
+  there. Checked 2026-11-01: this commit builds on v4.30 and those two theorems use only `propext`, `Classical.choice`, `Quot.sound`.
+- The other repository has the Lean v4.35 and module-system port, and fixed descriptions of the adjunction direction. This one has not been
+  ported. Porting this repository's regular-subcategory results there is open in that repository's `TODO.md` (D22).
+- This repository has never been submitted to Palomar (`formalization.yaml` still holds `TEMPLATE` values).
+
 ## Submission
 
 1. Commit the tree; take the full 40-character SHA.
