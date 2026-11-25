@@ -4,3 +4,4 @@ import MechDesigAdjointfunctor.Lean.MyersonSetting
 import MechDesigAdjointfunctor.Lean.MirrleesSetting
 import MechDesigAdjointfunctor.Lean.MasterTheorem
 import MechDesigAdjointfunctor.Lean.Corollaries
+import MechDesigAdjointfunctor.Lean.ProductDecomposition

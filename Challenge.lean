@@ -6,8 +6,10 @@ import MechDesigAdjointfunctor.Lean.MirrleesSetting
 # MechDesigAdjointfunctor — Advertised Statement Surface
 
 This is the small, trusted surface a mathematical reader should audit.
-It contains the main theorem statement: the adjunction T ⊣ Q that unifies
-Myerson's Revenue Equivalence Theorem and the Mirrlees Taxation Principle.
+It contains the main theorem statement: the adjunction T ⊣ Q, the categorical packaging of the
+fibre structure of the forgetful functor Q.  That structure has two halves — the transfer is a
+function of the allocation (the Taxation Principle, Hammond–Rochet) and only the rent is free
+(Myerson's Revenue Equivalence Theorem, in the auction and Mirrlees settings).
 
 ## Main Result
 
@@ -160,6 +162,41 @@ theorem masterTheorem_rentExtraction {A : Type*} [LinearOrder A]
       surplus (Tmech hθ_pos hSC hD_Ioi r hdiff hint hintC) θ ≤ surplus m θ :=
   sorry
 
+/-- **Product decomposition** `MechR ≌ AllocR × ℝ≥0`: the fibre of `Q` over an allocation is a
+ray indexed by the rent `V_m(θ_min) ≥ 0`, and the order on **MechR** is the product order.
+
+Stated without new definitions.  Because **Mech** is a thin category, the functor
+`m ↦ (Q m, V_m(θ_min))` from `MechR` to `AllocR × ℝ≥0` is faithful for free, so it is an equivalence
+exactly when it is
+
+* **full** (first conjunct): a morphism `m ⟶ m'` exists iff a morphism `Q m ⟶ Q m'` exists and
+  `V_m(θ_min) ≤ V_{m'}(θ_min)`.  This is where the envelope theorem and single crossing enter;
+* **essentially surjective** (second conjunct): for every regular allocation `r` and every `c ≥ 0`
+  there is a regular BIC-IR mechanism with allocation `r` and rent exactly `c`.
+
+Under this equivalence `Q` is the first projection and `T r = (r, 0)`.  The existing equivalence
+`AllocR ≌ Mech₀` is only the slice `c = 0`; it does not contain the second conjunct, and it says
+nothing about the order between mechanisms with different rents.  Revenue equivalence
+(equal `Q m` and equal rent give an isomorphism, hence equal transfers) and `T ⊣ Q` (because `0`
+is the least rent, which is IR) are read off this statement.
+
+The hypotheses are those of `adj_T_Q`; `Corollaries`-level witnesses instantiate them in the
+Myerson setting. -/
+theorem productDecomposition {A : Type*} [LinearOrder A]
+    {v : A → ℝ → ℝ} {θ_min : ℝ}
+    (hθ_pos : 0 < θ_min) {D : Set ℝ} (hSC : SingleCrossing v D)
+    (hD : ∀ θ, θ ∈ D) (hD_Ioi : Set.Ioi 0 ⊆ D)
+    (hdiff : ∀ (a : A), DifferentiableOn ℝ (v a) (Set.Ioi 0))
+    (hintC : ∀ (a : A) b c, IntervalIntegrable (deriv (v a)) MeasureTheory.volume b c) :
+    (∀ m m' : MechR A v θ_min,
+      Nonempty (m ⟶ m') ↔
+        (Nonempty ((QR (θ_min := θ_min) hSC hD).obj m ⟶ (QR (θ_min := θ_min) hSC hD).obj m') ∧
+          surplus m.obj θ_min ≤ surplus m'.obj θ_min)) ∧
+    (∀ (r : AllocR A v θ_min) (c : ℝ), 0 ≤ c →
+      ∃ m : MechR A v θ_min,
+        (QR (θ_min := θ_min) hSC hD).obj m = r ∧ surplus m.obj θ_min = c) :=
+  sorry
+
 /-- **Revenue Equivalence Theorem** (Myerson 1981): any two BIC-IR mechanisms with the same
 allocation rule and the same boundary rent charge the same transfer at every physical type.
 (Integrating against any finite measure on types then gives the equal-expected-revenue form,
@@ -191,10 +228,12 @@ nonlinear tax schedule.  There is a schedule `T` on incomes with `t(θ) = T(y(θ
 physical type, and it is unique on the incomes the mechanism actually assigns.
 
 This is a statement about **one** mechanism, and it costs nothing but incentive compatibility:
-no single crossing, no differentiability, no integrability, no measure.  The comparison
-statement — two mechanisms with the same income schedule and the same rent levy the same tax —
-is revenue equivalence transposed to the Mirrlees setting, and it is a different theorem
-(`Corollaries.mirrlees_transferInvariance_impl`). -/
+no single crossing, no differentiability, no integrability, no measure.  It is one half of the
+fibre structure of the forgetful functor `Q`: the transfer is a function of the allocation.  The
+other half — two mechanisms with the same income schedule and the same rent levy the same tax —
+is revenue equivalence transposed to the Mirrlees setting
+(`Corollaries.mirrlees_transferInvariance_impl`): the only freedom left is the rent.  The
+adjunction `adj_T_Q` packages this structure; it does not derive it. -/
 theorem taxationPrinciple (h g : ℝ → ℝ) (θ_min : ℝ)
     (m : ICIRMechanism ℝ (Mirrlees.mirrleesValue h g) θ_min) :
     ∃ T : ℝ → ℝ, (∀ θ, θ_min ≤ θ → m.mech.t θ = T (m.mech.q θ)) ∧

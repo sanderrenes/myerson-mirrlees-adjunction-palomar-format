@@ -717,7 +717,7 @@ noncomputable def adj_T_Q_impl {A : Type*} [LinearOrder A]
   }
 
 /-- **Lemma 1.8 (proved)**: `T` preserves all small colimits, being a left adjoint. -/
-noncomputable instance TR_preservesColimits {A : Type*} [LinearOrder A]
+theorem TR_preservesColimits {A : Type*} [LinearOrder A]
     {v : A → ℝ → ℝ}
     (θ_min : ℝ) (hθ_pos : 0 < θ_min) {D : Set ℝ} (hSC : SingleCrossing v D)
     (hD : ∀ θ, θ ∈ D) (hD_Ioi : Set.Ioi 0 ⊆ D)
@@ -727,7 +727,7 @@ noncomputable instance TR_preservesColimits {A : Type*} [LinearOrder A]
   (adj_T_Q_impl θ_min hθ_pos hSC hD hD_Ioi hdiff hintC).leftAdjoint_preservesColimits
 
 /-- `Q`, as the **right** adjoint, preserves all small limits. -/
-noncomputable instance QR_preservesLimits {A : Type*} [LinearOrder A]
+theorem QR_preservesLimits {A : Type*} [LinearOrder A]
     {v : A → ℝ → ℝ}
     (θ_min : ℝ) (hθ_pos : 0 < θ_min) {D : Set ℝ} (hSC : SingleCrossing v D)
     (hD : ∀ θ, θ ∈ D) (hD_Ioi : Set.Ioi 0 ⊆ D)
@@ -1270,10 +1270,12 @@ The three-move architecture of the Master Theorem:
 
 * **Move 3 (normalized).**  On the full subcategory `Mech₀` of regular zero-rent mechanisms,
   the counit is an isomorphism, so `T ⊣ Q` upgrades to an **adjoint equivalence**
-  `AllocR ≌ Mech₀` (`equivAllocMech₀`) — adjoint in *both* directions.  This is revenue
-  equivalence packaged categorically: once the rent is normalised, a regular mechanism
-  carries no information beyond its allocation rule.  (It is *not* the elementary Taxation
-  Principle, which is `taxationPrinciple_impl` — one mechanism, IC only, no regularity.)
+  `AllocR ≌ Mech₀` (`equivAllocMech₀`) — adjoint in *both* directions.  This is the fibre
+  structure packaged categorically: once the rent is normalised, a regular mechanism
+  carries no information beyond its allocation rule.  (Its two halves are the elementary
+  Taxation Principle, `taxationPrinciple_impl` — transfer is a function of the allocation, one
+  mechanism, IC only, no regularity — and revenue equivalence, which says only the rent is
+  free.  The adjunction packages this structure; it does not derive it.)
 
 Note the division of labour.  The content lives in Move 1 (that `T` exists at all —
 `T_wellDefined`) and Move 2 (that the counit is iso precisely at zero rent).  Once those
@@ -1413,11 +1415,13 @@ are the same thing, up to natural isomorphism.  Consequently `T₀ ⊣ Q₀` *an
 two functors are adjoint in both directions, which is exactly what an adjoint equivalence
 gives.
 
-This is revenue equivalence in categorical form (once the rent is normalised the payment
-rule is redundant data), and it reconstructs the payment via the envelope integral `T₀`.
-It is heavier than — and should not be conflated with — the elementary Taxation Principle
-`taxationPrinciple_impl`, which produces an allocation-indexed schedule for a *single*
-mechanism from IC alone, with no regularity and no normalisation.
+This is the fibre structure of `Q` in categorical form: once the rent is normalised the
+payment rule is redundant data, and it is reconstructed from the allocation by the envelope
+integral `T₀`.  The two classical results are its two halves.  The Taxation Principle
+(`taxationPrinciple_impl`) says the transfer is a function of the allocation, for a *single*
+mechanism, from IC alone, with no regularity and no normalisation.  Revenue equivalence says
+the only freedom left is the rent.  The equivalence is heavier than the first half because it
+also carries the second (the envelope formula).
 
 - The unit `𝟭 AllocR ≅ Q₀ ∘ T₀` is the identity: `Q(T(r)).q = r.q` definitionally.
 - The counit `T₀ ∘ Q₀ ≅ 𝟭 Mech₀` is where the work is: for a *zero-rent* `m`, stripping the

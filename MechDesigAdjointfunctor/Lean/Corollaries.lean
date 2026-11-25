@@ -8,8 +8,9 @@ import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 
 Instantiates the abstract Master Theorem (`MasterTheorem.lean`) in the two
 economic settings to recover the classical revenue-equivalence results as special
-cases.  (The Taxation Principle proper is *not* a corollary of the Master Theorem —
-it is `MechDesign.taxationPrinciple_impl` in `Framework.lean`, from IC alone.)
+cases.  (The Taxation Principle is the other half of the same fibre structure — the transfer is
+a function of the allocation — and is proved directly from IC as
+`MechDesign.taxationPrinciple_impl` in `Framework.lean`, not through the Master Theorem.)
 
 ## Main declarations
 
@@ -19,9 +20,10 @@ it is `MechDesign.taxationPrinciple_impl` in `Framework.lean`, from IC alone.)
 * `MechDesign.Corollaries.mirrlees_transferInvariance_impl` — Corollary 5.2: revenue
   equivalence in the Mirrlees setting, the same instance of Theorem 4.5(iii) with a different
   value function.
-* The **Taxation Principle** itself is not here: it is a statement about a single mechanism and
-  costs only IC, so it lives with the primitives as `MechDesign.taxationPrinciple_impl`
-  (`Framework.lean`).
+* The **Taxation Principle** itself is not here: it is the "transfer is a function of the
+  allocation" half of the fibre structure of `Q`, costs only IC, and lives with the primitives
+  as `MechDesign.taxationPrinciple_impl` (`Framework.lean`).  Revenue equivalence is the other
+  half ("and only the rent is free").
 
 ## The proof chain
 
@@ -42,12 +44,24 @@ surplus_lipschitzOn   surplus_hasDerivWithinAt   ← Milgrom–Segal (MVT + sque
   (Myerson 1981)          (Myerson 1981, transposed)
 ```
 
-The Taxation Principle proper is *not* on this chain: it is `taxationPrinciple_impl`
+The Taxation Principle is *not* on this chain: it is `taxationPrinciple_impl`
 (`Framework.lean`), one mechanism from IC alone, with none of the envelope machinery above.
+It is the other half of the same structure: the transfer is a function of the allocation (this
+file's chain) up to one rent constant (the chain above).
 
 Both corollaries follow from `masterTheorem_transferInvariance_impl`.  Only the value
 function differs — `myersonValue` vs `mirrleesValue`.  That is the unification claim, and it
 is literally the same call with a different `v`.
+
+**Common source of the two classical results.**  Both are consequences of one structural fact
+about the forgetful functor `Q`.  For an IC mechanism the transfer is a *function of the
+allocation* (the taxation principle: `transfer_depends_only_on_alloc`, IC only), and the only
+freedom left is *one constant*, the rent (revenue equivalence: `surplus_split`, the envelope
+formula).  So the fibre `Q⁻¹(r)` is a ray indexed by rent `≥ 0`.  The adjunction `T ⊣ Q` is the
+categorical packaging of this structure: `T r` is the bottom of the ray, the counit removes the
+rent, and `AllocR ≌ Mech₀` says a normalised mechanism is its allocation.  It does not derive
+the structure — a Galois connection alone gives only `V_{TQm} ≤ V_m`; equality up to a constant
+is the envelope formula.
 
 Note what is **not** on this chain: `adj_T_Q`.  The adjunction is proved structure *about*
 the framework, not a lemma the corollaries consume.  The categorical content they do use is
@@ -242,9 +256,10 @@ theorem myerson_revenueFormula (q : ℝ → ℝ) (F f : ℝ → ℝ)
 
 /-! ### 5.2 Revenue equivalence in the Mirrlees setting (Corollary 5.2)
 
-The taxation principle proper is `MechDesign.taxationPrinciple_impl` (`Framework.lean`),
-IC-only, one mechanism.  What instantiates the Master Theorem here is its *comparison*
-counterpart: two mechanisms with the same income schedule and rent levy the same tax. -/
+The taxation principle is `MechDesign.taxationPrinciple_impl` (`Framework.lean`): IC-only, the
+transfer is a function of the allocation.  What instantiates the Master Theorem here is the
+other half of the fibre structure: two mechanisms with the same income schedule and rent levy
+the same tax. -/
 
 /-- **Revenue equivalence in the Mirrlees setting** — the taxation counterpart of
 `revenueEquivalence_impl`, and the same theorem with `v := mirrleesValue`.
@@ -252,8 +267,10 @@ counterpart: two mechanisms with the same income schedule and rent levy the same
 Two IC mechanisms with the same income assignment `y(θ)` and the same rent at the lowest type
 levy the same tax at every type.  This used to be called `taxationPrinciple_impl`, which
 overstated it: it compares **two** mechanisms and never produces a tax schedule.  The taxation
-principle proper — one mechanism, a schedule `T` on incomes with `t(θ) = T(y(θ))` — is
-`MechDesign.taxationPrinciple_impl` (`Framework.lean`), and it needs nothing but IC.
+principle — one mechanism, a schedule `T` on incomes with `t(θ) = T(y(θ))` — is
+`MechDesign.taxationPrinciple_impl` (`Framework.lean`), and it needs nothing but IC.  The two
+are the two halves of one fibre structure: the transfer is a function of the allocation
+(taxation principle), and only the rent is free (this theorem).
 
 **On the hypotheses.**  Notice what is *absent*: the Spence–Mirrlees conditions
 (`0 < g'`, `StrictMono h`, `StrictMono (l ↦ l · g' l)`) are **not** assumed, because transfer

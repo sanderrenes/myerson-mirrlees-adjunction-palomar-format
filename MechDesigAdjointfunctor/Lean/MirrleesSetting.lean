@@ -31,7 +31,9 @@ optimal nonlinear income taxation model, recovering the **Taxation Principle**
 * The **Taxation Principle**: any IC mechanism can be implemented by a nonlinear tax
   schedule on income, unique on the incomes the mechanism assigns.  It is proved in
   `Framework.lean` (`MechDesign.taxationPrinciple_impl`), for one mechanism and from IC
-  alone, since it needs nothing from this file.
+  alone, since it needs nothing from this file.  Together with revenue equivalence
+  (`Corollaries.mirrlees_transferInvariance_impl`) it forms the fibre structure of `Q` in this
+  setting: the transfer is a function of the allocation, up to one rent constant.
 
 ## References
 
@@ -106,11 +108,11 @@ lemma mirrlees_singleCrossing (h g : ℝ → ℝ) (_hh : Differentiable ℝ h)
     have hdy : HasDerivAt (fun x => y / x) (-(y / θ ^ 2)) θ := by
       have hraw := (hasDerivAt_const θ y).div (hasDerivAt_id θ) hθne
       simp only [id] at hraw
-      convert hraw using 1; ring
+      convert hraw using 1 <;> first | (funext x; simp) | ring
     have hdy' : HasDerivAt (fun x => y' / x) (-(y' / θ ^ 2)) θ := by
       have hraw := (hasDerivAt_const θ y').div (hasDerivAt_id θ) hθne
       simp only [id] at hraw
-      convert hraw using 1; ring
+      convert hraw using 1 <;> first | (funext x; simp) | ring
     -- HasDerivAt for g(y/x) and g(y'/x)
     have hdgy : HasDerivAt (fun x => g (y / x)) (deriv g (y / θ) * -(y / θ ^ 2)) θ :=
       (hg (y / θ)).hasDerivAt.comp θ hdy
@@ -371,7 +373,7 @@ lemma mirrleesValue_hasDerivAt (h g : ℝ → ℝ) (_hh : Differentiable ℝ h)
   have hdy : HasDerivAt (fun x => y / x) (-(y / θ ^ 2)) θ := by
     have hraw := (hasDerivAt_const θ y).div (hasDerivAt_id θ) hθ
     simp only [id] at hraw
-    convert hraw using 1; ring
+    convert hraw using 1 <;> first | (funext x; simp) | ring
   -- chain rule for g(y/θ)
   have hdgy : HasDerivAt (fun x => g (y / x)) (deriv g (y / θ) * -(y / θ ^ 2)) θ :=
     (hg (y / θ)).hasDerivAt.comp θ hdy
