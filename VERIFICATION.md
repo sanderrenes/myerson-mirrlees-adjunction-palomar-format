@@ -37,7 +37,7 @@ On a copy whose default targets are the proof development and `Solution` only: `
 | Run | Declarations | Lean default | Lean paranoid | lean4lean | con-leche | con-ron | nanoda |
 |---|---|---|---|---|---|---|---|
 | `lake check --paranoid` (whole project) | 404,525 | accept | accept | accept | accept | accept | **crash**: "thread has overflowed its stack" (reported as "rejected") |
-| `lake comparator --paranoid` (the 8 statements) | 36,711 | accept | accept | accept | accept | accept | accept |
+| `lake comparator --paranoid` (the 8 statements; 12 after the addendum below) | 36,711 | accept | accept | accept | accept | accept | accept |
 
 The nanoda failure is a stack overflow in the checker on a very large export, not a logical rejection. The same crash happened on Lean 4.35.0. I did not find a stack-size option.
 
@@ -64,3 +64,16 @@ Whole project 404,525 → about 36,500 per statement (11 times smaller). The tax
 - Nothing is committed in the Lean repository.
 - `Challenge.lean` independence (questions 2 and 3): someone other than the prover would have to write or review it.
 - nanoda on the whole-project export.
+
+## Addendum: four monotonicity statements (2026-11-25)
+
+`MechDesigAdjointfunctor/Lean/MonotoneResults.lean` adds four elementary results, advertised in `Challenge.lean` and proved in `Solution.lean`: `auction_winProb_mono`, `auction_payment_mono`, `auction_rent_mono`, `mirrlees_taxPaid_strictMono`. They use no category theory. The advertised statements are now twelve.
+
+`lake comparator --paranoid`, six kernels (Lean, paranoid, lean4lean, nanoda, con-leche, con-ron), run in a scratch copy:
+
+| Run | Result |
+|---|---|
+| each of the four statements alone | all six kernels accept (24 s, 24 s, 24 s, 47 s) |
+| all twelve statements together | all six kernels accept, including nanoda (2 min) |
+
+`lake build` passes. Not committed.

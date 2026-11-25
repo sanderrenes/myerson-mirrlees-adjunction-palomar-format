@@ -40,8 +40,8 @@ MechDesigAdjointfunctor/
     └── ProductDecomposition.lean       MechR ≌ AllocR × ℝ≥0 (the fibre as a rent ray), with
                                         revenue equivalence and T ⊣ Q read off it
 
-Challenge.lean                          8 advertised statements, each with `sorry`
-Solution.lean                           same 8 signatures, each delegated to a `_impl`
+Challenge.lean                          12 advertised statements, each with `sorry`
+Solution.lean                           same 12 signatures, each delegated to a proof
 comparator.json                         declarations Comparator must match
 formalization.yaml                      registry metadata
 scripts/                                verify-comparator.sh, validate-formalization.rb, landrun-wrapper.sh
@@ -103,9 +103,9 @@ flowchart TD
 
 ---
 
-## The eight advertised results
+## The twelve advertised results
 
-All eight are stated in [`Challenge.lean`](Challenge.lean) with full docstrings and
+All twelve are stated in [`Challenge.lean`](Challenge.lean) with full docstrings and
 a `sorry`, and re-proved in [`Solution.lean`](Solution.lean) by delegating to the
 corresponding `*_impl` declaration.
 
@@ -119,6 +119,12 @@ corresponding `*_impl` declaration.
 | 6 | `MechDesign.taxationPrinciple` | `theorem` | Mirrlees (1971); Hammond (1979); Rochet (1985) | `Framework.taxationPrinciple_impl` |
 | 7 | `MechDesign.masterTheorem_rentExtraction` | `theorem` | Corollary 4.4 (cross-fiber) | `MasterTheorem.masterTheorem_rentExtraction_impl` |
 | 8 | `MechDesign.productDecomposition` | `theorem` | `MechR ≌ AllocR × ℝ≥0` (full + essentially surjective) | `ProductDecomposition.productDecomposition_impl` |
+| 9 | `MechDesign.auction_winProb_mono` | `theorem` | Myerson (1981): winning probability non-decreasing | `MonotoneResults.auction_winProb_mono` |
+| 10 | `MechDesign.auction_payment_mono` | `theorem` | expected payment non-decreasing (`θ_min ≥ 0`) | `MonotoneResults.auction_payment_mono` |
+| 11 | `MechDesign.auction_rent_mono` | `theorem` | rent non-decreasing (allocations `≥ 0`) | `MonotoneResults.auction_rent_mono` |
+| 12 | `MechDesign.mirrlees_taxPaid_strictMono` | `theorem` | tax paid strictly increasing (`T′ > 0`) | `MonotoneResults.mirrlees_taxPaid_strictMono` |
+
+Results 9–12 are elementary inequalities and use no category theory.
 
 Result 7 is the one advertised statement whose proof *consumes* the adjunction
 ⟨1⟩: `T(r)` leaves the agent the least surplus — extracts the most revenue — at
@@ -345,7 +351,7 @@ Run with [check-lean-claim](https://github.com/AdemBenAbdallah/check-lean-claim)
 
 - `lake build` of all targets passes.
 - `lake check` on the proof development and `Solution`: axioms are only `propext`, `Quot.sound`, `Classical.choice`.
-- `lake comparator --paranoid` on the eight advertised statements: accepted by the Lean kernel, the paranoid Lean checker, lean4lean, nanoda, con-leche and con-ron. Each statement also passes alone (closure about 36,500 declarations; the taxation principle alone: 6,479).
+- `lake comparator --paranoid` on the twelve advertised statements: accepted by the Lean kernel, the paranoid Lean checker, lean4lean, nanoda, con-leche and con-ron. Each statement also passes alone (closure about 36,500 declarations; the taxation principle alone: 6,479).
 - Known limits: `lake check` cannot take `Challenge` as a default target (it has `sorry` and the same names as `Solution`), so `check.sh` as shipped reports question 1 as FAIL for that reason. nanoda overflows its stack on the whole-project export (404,525 declarations), but accepts the statement closures. `Challenge.lean` was written by the author of the proofs, so the comparison checks the match and not the independence of the statements.
 
 ---
