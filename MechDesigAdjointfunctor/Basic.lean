@@ -5,3 +5,4 @@ import MechDesigAdjointfunctor.Lean.MirrleesSetting
 import MechDesigAdjointfunctor.Lean.MasterTheorem
 import MechDesigAdjointfunctor.Lean.Corollaries
 import MechDesigAdjointfunctor.Lean.ProductDecomposition
+import MechDesigAdjointfunctor.Lean.MonotoneResults
