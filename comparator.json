@@ -8,7 +8,11 @@
     "MechDesign.masterTheorem_rentExtraction",
     "MechDesign.productDecomposition",
     "MechDesign.revenueEquivalence",
-    "MechDesign.taxationPrinciple"
+    "MechDesign.taxationPrinciple",
+    "MechDesign.auction_winProb_mono",
+    "MechDesign.auction_payment_mono",
+    "MechDesign.auction_rent_mono",
+    "MechDesign.mirrlees_taxPaid_strictMono"
   ],
   "definition_names": [
     "MechDesign.adj_T_Q"

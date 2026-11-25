@@ -251,4 +251,37 @@ theorem taxationPrinciple (h g : ℝ → ℝ) (θ_min : ℝ)
         Set.EqOn T T' (m.mech.q '' Set.Ici θ_min) :=
   taxationPrinciple_impl m
 
+/-- **Winning probability is non-decreasing** (auction): IC for two types, added, gives
+`(θ₂ − θ₁)(q θ₂ − q θ₁) ≥ 0`. -/
+theorem auction_winProb_mono (θ_min : ℝ) (m : Mechanism ℝ)
+    (hIC : IsIC Myerson.myersonValue θ_min m) :
+    MonotoneOn m.q (Set.Ici θ_min) :=
+  MonotoneResults.auction_winProb_mono θ_min m hIC
+
+/-- **Expected payment is non-decreasing** (auction, `θ_min ≥ 0`): IC of the lower type gives
+`t θ' − t θ ≥ θ (q θ' − q θ) ≥ 0`. -/
+theorem auction_payment_mono (θ_min : ℝ) (hθ : 0 ≤ θ_min) (m : Mechanism ℝ)
+    (hIC : IsIC Myerson.myersonValue θ_min m) :
+    MonotoneOn m.t (Set.Ici θ_min) :=
+  MonotoneResults.auction_payment_mono θ_min hθ m hIC
+
+/-- **Rent is non-decreasing** (auction, allocations `≥ 0`): the higher type can report the lower
+type's report, so `V θ' ≥ V θ + (θ' − θ) q θ ≥ V θ`. -/
+theorem auction_rent_mono (θ_min : ℝ) (m : Mechanism ℝ)
+    (hIC : IsIC Myerson.myersonValue θ_min m)
+    (hq : ∀ θ, θ_min ≤ θ → 0 ≤ m.q θ) :
+    MonotoneOn (fun θ => Myerson.myersonValue (m.q θ) θ - m.t θ) (Set.Ici θ_min) :=
+  MonotoneResults.auction_rent_mono θ_min m hIC hq
+
+/-- **Tax paid is strictly increasing in type** (income tax): the tax bill of type `θ` is
+`T (y θ)`; `y` is strictly increasing and the marginal tax rate `T′` is positive, so `T` is
+strictly increasing and so is the composition.  Stated for `Mirrlees.taxSchedule`, with
+consumption `c θ = y θ − T (y θ)`. -/
+theorem mirrlees_taxPaid_strictMono (y T : ℝ → ℝ) (θ_min : ℝ)
+    (hy : StrictMonoOn y (Set.Ici θ_min))
+    (hT : Differentiable ℝ T)
+    (hT_pos : ∀ z, 0 < deriv T z) :
+    StrictMonoOn (Mirrlees.taxSchedule y (fun θ => y θ - T (y θ))) (Set.Ici θ_min) :=
+  MonotoneResults.mirrlees_taxPaid_strictMono y T θ_min hy hT hT_pos
+
 end MechDesign
