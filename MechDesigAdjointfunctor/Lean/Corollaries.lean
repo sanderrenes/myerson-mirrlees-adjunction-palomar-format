@@ -138,7 +138,7 @@ theorem mirrlees_lipschitz (h g : ℝ → ℝ) (hh : Differentiable ℝ h) (hg :
     {θ_min : ℝ} (hθ_pos : 0 < θ_min) (y : ℝ) (C : NNReal)
     (hbound : ∀ θ ∈ Set.Ici θ_min, ‖h y + (y / θ ^ 2) * deriv g (y / θ)‖₊ ≤ C) :
     LipschitzOnWith C (Mirrlees.mirrleesValue h g y) (Set.Ici θ_min) := by
-  refine (convex_Ici θ_min).lipschitzOnWith_of_nnnorm_hasDerivWithin_le
+  refine (convex_Ici θ_min).lipschitzOnWith_of_nnNorm_hasDerivWithin_le
     (f' := fun θ => h y + (y / θ ^ 2) * deriv g (y / θ)) (fun θ hθ => ?_) hbound
   have hθ0 : θ ≠ 0 := ne_of_gt (lt_of_lt_of_le hθ_pos (Set.mem_Ici.mp hθ))
   exact (Mirrlees.mirrleesValue_hasDerivAt h g hh hg y θ hθ0).hasDerivWithinAt
@@ -384,7 +384,7 @@ theorem postedPrice_hasEnvelope :
       have hres : HasDerivWithinAt (fun s => max (s - p) 0) 1 (Set.Ioi θ) θ :=
         h1.congr (fun s hs => hEq (Set.mem_Ici.mpr (le_of_lt hs)))
           (hEq (Set.mem_Ici.mpr (le_refl θ)))
-      simpa [alloc, if_pos hpθ] using hres
+      simpa [alloc, ite_eq_left hpθ] using hres
     · -- Below the reserve: V is eventually 0 to the right of θ, slope 0 = q θ.
       rw [not_le] at hpθ
       have hev : (fun s => max (s - p) 0) =ᶠ[nhdsWithin θ (Set.Ioi θ)] fun _ => (0:ℝ) := by
@@ -396,7 +396,7 @@ theorem postedPrice_hasEnvelope :
         (hasDerivAt_const θ (0:ℝ)).hasDerivWithinAt
       have : HasDerivWithinAt (fun s => max (s - p) 0) 0 (Set.Ioi θ) θ :=
         h0.congr_of_eventuallyEq hev (max_eq_right (by linarith : θ - p ≤ (0:ℝ)))
-      simpa [alloc, if_neg (not_le.mpr hpθ)] using this
+      simpa [alloc, ite_eq_right (not_le.mpr hpθ)] using this
 
 /-- **The posted price does NOT satisfy a two-sided envelope hypothesis.**
 
@@ -471,8 +471,8 @@ theorem postedPrice_hW (θ : ℝ) :
     refine ContinuousWithinAt.congr (f := fun _ : ℝ × ℝ => (1 : ℝ))
       continuousWithinAt_const ?_ ?_
     · rintro ⟨s, u⟩ hsu
-      simp [alloc, if_pos (le_trans hp (Set.mem_Ici.mp hsu.1))]
-    · simp [alloc, if_pos hp]
+      simp [alloc, ite_eq_left (le_trans hp (Set.mem_Ici.mp hsu.1))]
+    · simp [alloc, ite_eq_left hp]
   · -- strictly below the reserve: `alloc p` is 0 on a whole neighbourhood of `(θ, θ)`
     refine ContinuousWithinAt.congr_of_eventuallyEq (f := fun _ : ℝ × ℝ => (0 : ℝ))
       continuousWithinAt_const ?_ ?_
@@ -480,8 +480,8 @@ theorem postedPrice_hW (θ : ℝ) :
           nhdsWithin ((θ, θ) : ℝ × ℝ) (Set.Ici θ ×ˢ Set.Ici θ) :=
         nhdsWithin_le_nhds (prod_mem_nhds (Iio_mem_nhds hp) Filter.univ_mem)
       filter_upwards [hmem] with x hx
-      simp [alloc, if_neg (not_le.mpr (Set.mem_Iio.mp hx.1))]
-    · simp [alloc, if_neg (not_le.mpr hp)]
+      simp [alloc, ite_eq_right (not_le.mpr (Set.mem_Iio.mp hx.1))]
+    · simp [alloc, ite_eq_right (not_le.mpr hp)]
 
 end PostedPrice
 
@@ -535,7 +535,7 @@ noncomputable def leftTransfer (p : ℝ) : ℝ → ℝ :=
 lemma leftAlloc_mono {p : ℝ} : Monotone (leftAlloc p) := by
   intro a b hab
   by_cases hb : b ≤ p
-  · simp [leftAlloc, if_pos (hab.trans hb), if_pos hb]
+  · simp [leftAlloc, ite_eq_left (hab.trans hb), ite_eq_left hb]
   · by_cases ha : a ≤ p <;> simp [leftAlloc, ha, hb]
 
 /-- The left-continuous posted price is a genuine BIC-IR mechanism: its surplus is the same
@@ -549,7 +549,7 @@ noncomputable def leftPostedPrice (θ_min p : ℝ) :
     intro θ θ' _ _
     simp only [Myerson.myersonValue, leftTransfer, leftAlloc]
     by_cases h1 : θ ≤ p <;> by_cases h2 : θ' ≤ p <;>
-      simp only [if_pos, h1, h2, if_false] <;>
+      simp only [ite_eq_left, h1, h2, ite_false] <;>
       rcases max_cases (θ - p) 0 with ⟨e1, _⟩ | ⟨e1, _⟩ <;>
       rcases max_cases (θ' - p) 0 with ⟨e2, _⟩ | ⟨e2, _⟩ <;>
       simp only [e1, e2] <;> nlinarith

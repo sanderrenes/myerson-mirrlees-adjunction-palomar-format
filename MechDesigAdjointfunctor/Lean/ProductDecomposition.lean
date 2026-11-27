@@ -3,7 +3,7 @@ import MechDesigAdjointfunctor.Lean.Corollaries
 import Mathlib.CategoryTheory.Category.Preorder
 import Mathlib.CategoryTheory.Products.Basic
 import Mathlib.CategoryTheory.Equivalence
-import Mathlib.Data.NNReal.Defs
+import Mathlib.Basic.NNReal.Defs
 
 /-!
 # The product decomposition `MechR ≌ AllocR × ℝ≥0`
@@ -218,7 +218,7 @@ theorem transfer_eq_of_productFunctor_iso {m m' : MechR A v θ_min}
     (i : (productFunctor (θ_min := θ_min) hSC hD).obj m ≅
          (productFunctor (θ_min := θ_min) hSC hD).obj m') :
     ∀ θ, θ_min ≤ θ → m.obj.mech.t θ = m'.obj.mech.t θ := by
-  haveI := productFunctor_full (θ_min := θ_min) hθ_pos hSC hD hD_Ioi hdiff hintC
+  have := productFunctor_full (θ_min := θ_min) hθ_pos hSC hD hD_Ioi hdiff hintC
   have j : m ≅ m' := (productFunctor (θ_min := θ_min) hSC hD).preimageIso i
   exact transfer_eq_of_iso ((RegMech v θ_min).ι.mapIso j)
 
@@ -232,7 +232,7 @@ theorem tr_hom_iff (r : AllocR A v θ_min) (m : MechR A v θ_min) :
   · rintro ⟨f⟩
     exact ⟨(QR (θ_min := θ_min) hSC hD).map f⟩
   · rintro ⟨g⟩
-    haveI := productFunctor_full (θ_min := θ_min) hθ_pos hSC hD hD_Ioi hdiff hintC
+    have := productFunctor_full (θ_min := θ_min) hθ_pos hSC hD hD_Ioi hdiff hintC
     have h0 : rent ((TR hθ_pos hSC hD_Ioi hdiff hintC).obj r).obj ≤ rent m.obj := by
       have := congrArg Prod.snd
         (productFunctor_obj_TR (θ_min := θ_min) hθ_pos hSC hD hD_Ioi hdiff hintC r)
@@ -273,7 +273,7 @@ theorem productDecomposition_impl {A : Type*} [LinearOrder A]
   · rintro ⟨f⟩
     exact ⟨⟨(QR (θ_min := θ_min) hSC hD).map f⟩, f.hom.hSurp θ_min le_rfl⟩
   · rintro ⟨⟨g⟩, hs⟩
-    haveI := productFunctor_full (θ_min := θ_min) hθ_pos hSC hD hD_Ioi hdiff hintC
+    have := productFunctor_full (θ_min := θ_min) hθ_pos hSC hD hD_Ioi hdiff hintC
     have h0 : rent m.obj ≤ rent m'.obj := NNReal.coe_le_coe.1 hs
     obtain ⟨f, _⟩ := (productFunctor (θ_min := θ_min) hSC hD).map_surjective
       (X := m) (Y := m') (g, homOfLE h0)
