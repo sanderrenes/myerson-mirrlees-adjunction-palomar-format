@@ -1,5 +1,7 @@
 # Verification report — `check-lean-claim`, Lean v4.36.0
 
+> **Superseded 2026-11-27.** This report is of the run on Lean v4.36.0 (2026-11-25). The repository is now on Lean v4.35.0 / Mathlib v4.35.0, because Palomar's verifier supports Lean v4.35.0-rc2 to v4.35.0 only. It builds there (`lake build`, all targets, no errors), but `lake check` and `lake comparator` have not been rerun, and the tables below describe v4.36.0.
+
 Date: 2026-11-25. Project: this repository, ported to **Lean v4.36.0** and **Mathlib v4.36.0** (`fc4f59e577fe…`). Tool: https://github.com/AdemBenAbdallah/check-lean-claim (commit `47312730b899`), which calls Lean's own `lake check` and `lake comparator`. I ran everything myself, inside Lean's `bwrap` sandbox, in scratch copies. The scratch copy that was checked is identical to the repository except for `README.md`.
 
 ## The port (from v4.30.0)
@@ -13,7 +15,7 @@ Four small source edits, no change to any statement:
 | `MasterTheorem.lean` | `noncomputable instance TR_preservesColimits` / `QR_preservesLimits` → `theorem` | newer Lean rejects instances with arguments it cannot infer (`hD`, `hθ_pos`, …) |
 | `ProductDecomposition.lean` | `simpa using …` → `exact …` | `simpa` no longer closes the goal |
 
-Plus `lean-toolchain`, `lakefile.toml` (Mathlib rev), `lake-manifest.json`, and `README.md`. The nested `docbuild/` project is on v4.36.0 too (doc-gen4 v4.36.0; `cd docbuild && lake build MechDesigAdjointfunctor:docs` succeeds, 11,947 jobs). Not ported: the module system.
+Plus `lean-toolchain`, `lakefile.toml` (Mathlib rev), `lake-manifest.json`, and `README.md`. The nested `docbuild/` project followed the project (v4.36.0 then; now v4.35.0 with doc-gen4 v4.35.0). Not ported: the module system.
 Plain `lake build` (all targets) passes. It prints deprecation warnings only (`dif_pos`, `if_pos`, `if_neg`, `Set.diff_singleton_eq_self`), not fixed.
 
 ## The five questions

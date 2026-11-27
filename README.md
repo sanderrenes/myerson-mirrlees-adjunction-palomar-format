@@ -7,8 +7,8 @@ the allocation (the **Taxation Principle** of Hammond–Rochet) and only the ren
 (Myerson's **Revenue Equivalence Theorem**, in the auction and Mirrlees settings).
 
 - **Namespace:** `MechDesign`
-- **Toolchain:** `leanprover/lean4:v4.36.0` (ported from v4.30.0 on 2026-11-25)
-- **Mathlib:** pinned at `fc4f59e577feb1a4956671bc04ac18aaaf8cd842`, the `v4.36.0` tag (see `lakefile.toml` / `lake-manifest.json`)
+- **Toolchain:** `leanprover/lean4:v4.35.0` (ported from v4.30.0 on 2026-11-25 to v4.36.0; moved back to v4.35.0 on 2026-11-27, the newest version Palomar's verifier supports)
+- **Mathlib:** pinned at `56a005855ea17e0b0958f73ec801ae140b0a1679`, the `v4.35.0` tag (see `lakefile.toml` / `lake-manifest.json`)
 - **Permitted axioms:** `propext`, `Quot.sound`, `Classical.choice`
 - **License:** Apache-2.0
 
@@ -345,7 +345,9 @@ Optional documentation build:
 
 ---
 
-## Verification (2026-11-25, Lean v4.36.0)
+## Verification (2026-11-25, Lean v4.36.0; not yet repeated on v4.35.0)
+
+> **Superseded:** this section describes the run on Lean v4.36.0. The repository is now on v4.35.0 and builds there (`lake build`, all targets), but `lake check` and `lake comparator` have not been rerun on it.
 
 Run with [check-lean-claim](https://github.com/AdemBenAbdallah/check-lean-claim) tools (`lake check`, `lake comparator`) in Lean's sandbox. Full table: [`VERIFICATION.md`](VERIFICATION.md).
 
