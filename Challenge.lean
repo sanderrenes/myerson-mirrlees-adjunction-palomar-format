@@ -1,6 +1,10 @@
-import MechDesigAdjointfunctor.Lean.MasterTheorem
-import MechDesigAdjointfunctor.Lean.MyersonSetting
-import MechDesigAdjointfunctor.Lean.MirrleesSetting
+module
+
+public import MechDesigAdjointfunctor.Lean.MasterTheorem
+public import MechDesigAdjointfunctor.Lean.MyersonSetting
+public import MechDesigAdjointfunctor.Lean.MirrleesSetting
+
+@[expose] public section
 
 /-!
 # MechDesigAdjointfunctor — Advertised Statement Surface

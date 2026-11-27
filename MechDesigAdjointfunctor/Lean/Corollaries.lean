@@ -1,7 +1,11 @@
-import MechDesigAdjointfunctor.Lean.MasterTheorem
-import MechDesigAdjointfunctor.Lean.MyersonSetting
-import MechDesigAdjointfunctor.Lean.MirrleesSetting
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
+module
+
+public import MechDesigAdjointfunctor.Lean.MasterTheorem
+public import MechDesigAdjointfunctor.Lean.MyersonSetting
+public import MechDesigAdjointfunctor.Lean.MirrleesSetting
+public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
+
+@[expose] public section
 
 /-!
 # Stage 5: Revenue Equivalence as a Corollary (both settings)

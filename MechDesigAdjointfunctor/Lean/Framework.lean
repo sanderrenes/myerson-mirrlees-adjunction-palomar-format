@@ -1,12 +1,16 @@
-import MechDesigAdjointfunctor.Lean.Linters
-import Mathlib.CategoryTheory.Adjunction.Basic
-import Mathlib.CategoryTheory.Limits.HasLimits
-import Mathlib.CategoryTheory.Limits.Preserves.Basic
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
-import Mathlib.Analysis.Calculus.Deriv.Basic
-import Mathlib.Analysis.Calculus.Deriv.Mul
-import Mathlib.Order.Monotone.Basic
-import Mathlib.Order.CompleteLattice.Basic
+module
+
+public import MechDesigAdjointfunctor.Lean.Linters
+public import Mathlib.CategoryTheory.Adjunction.Basic
+public import Mathlib.CategoryTheory.Limits.HasLimits
+public import Mathlib.CategoryTheory.Limits.Preserves.Basic
+public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
+public import Mathlib.Analysis.Calculus.Deriv.Basic
+public import Mathlib.Analysis.Calculus.Deriv.Mul
+public import Mathlib.Order.Monotone.Basic
+public import Mathlib.Order.CompleteLattice.Basic
+
+@[expose] public section
 
 /-!
 # Stage 1: Abstract Categorical Framework

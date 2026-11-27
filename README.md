@@ -366,8 +366,9 @@ and behind it in Lean version:
 - It states the adjunction `T ⊣ Q` on the regular subcategories `AllocR` / `MechR`. The version on all of **Mech** (the one in the other
   repository) carries hypotheses that cannot hold for Myerson (`Corollaries.no_uniform_lipschitz`, `Corollaries.no_uniform_hW`), so it is vacuous
   there. Checked 2026-11-01: this commit builds on v4.30 and those two theorems use only `propext`, `Classical.choice`, `Quot.sound`.
-- The other repository has the Lean v4.35 and module-system port, and fixed descriptions of the adjunction direction. This one is now ported to
-  Lean v4.36.0 (2026-11-25), but not to the module system. Porting this repository's regular-subcategory results there is open in that repository's `TODO.md` (D22).
+- The other repository has the Lean v4.35 and module-system port, and fixed descriptions of the adjunction direction. This one was ported to
+  Lean v4.36.0 on 2026-11-25, moved back to v4.35.0 on 2026-11-27, and now uses the module system as well (every `.lean` file has `module`, `public import` and
+  `@[expose] public section`; the linter file is a `public meta section`). Porting this repository's regular-subcategory results there is open in that repository's `TODO.md` (D22).
 - This repository has never been submitted to Palomar (`formalization.yaml` still holds `TEMPLATE` values).
 
 ## Submission

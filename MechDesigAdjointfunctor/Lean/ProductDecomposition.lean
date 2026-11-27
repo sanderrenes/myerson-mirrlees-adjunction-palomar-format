@@ -1,9 +1,13 @@
-import MechDesigAdjointfunctor.Lean.MasterTheorem
-import MechDesigAdjointfunctor.Lean.Corollaries
-import Mathlib.CategoryTheory.Category.Preorder
-import Mathlib.CategoryTheory.Products.Basic
-import Mathlib.CategoryTheory.Equivalence
-import Mathlib.Data.NNReal.Defs
+module
+
+public import MechDesigAdjointfunctor.Lean.MasterTheorem
+public import MechDesigAdjointfunctor.Lean.Corollaries
+public import Mathlib.CategoryTheory.Category.Preorder
+public import Mathlib.CategoryTheory.Products.Basic
+public import Mathlib.CategoryTheory.Equivalence
+public import Mathlib.Data.NNReal.Defs
+
+@[expose] public section
 
 /-!
 # The product decomposition `MechR ≌ AllocR × ℝ≥0`

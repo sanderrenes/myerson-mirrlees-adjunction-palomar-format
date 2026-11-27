@@ -1,4 +1,8 @@
-import MechDesigAdjointfunctor.Lean.Basic
+module
+
+public import MechDesigAdjointfunctor.Lean.Basic
+
+@[expose] public section
 
 /-!
 # MechDesigAdjointfunctor — Root Import

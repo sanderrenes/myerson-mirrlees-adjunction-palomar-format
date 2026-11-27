@@ -1,5 +1,9 @@
-import MechDesigAdjointfunctor.Lean.MyersonSetting
-import MechDesigAdjointfunctor.Lean.MirrleesSetting
+module
+
+public import MechDesigAdjointfunctor.Lean.MyersonSetting
+public import MechDesigAdjointfunctor.Lean.MirrleesSetting
+
+@[expose] public section
 
 /-!
 # Monotone results: winning probability, payment, rent, tax paid
