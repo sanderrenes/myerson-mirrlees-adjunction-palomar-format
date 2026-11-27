@@ -260,7 +260,7 @@ theorem taxSchedule_apply {A : Type*} [Preorder A]
     {v : A → ℝ → ℝ} {θ_min : ℝ} (m : ICIRMechanism A v θ_min)
     {θ : ℝ} (hθ : θ_min ≤ θ) : m.mech.t θ = taxSchedule m (m.mech.q θ) := by
   have hex : ∃ θ', θ_min ≤ θ' ∧ m.mech.q θ' = m.mech.q θ := ⟨θ, hθ, rfl⟩
-  rw [taxSchedule, dite_eq_left hex]
+  rw [taxSchedule, dif_pos hex]
   exact (transfer_depends_only_on_alloc m hex.choose_spec.1 hθ hex.choose_spec.2).symm
 
 /-- **The taxation principle, uniqueness half**: any two schedules that implement the same

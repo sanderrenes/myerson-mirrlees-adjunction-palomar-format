@@ -415,7 +415,7 @@ theorem surplus_hasDerivWithinAt {A : Type*} [LinearOrder A]
     HasDerivWithinAt (surplus m) (typeDerivAlongAlloc v r θ) (Set.Ioi θ) θ := by
   have hθ0 : 0 < θ := lt_of_lt_of_le hθ_pos hθ
   have hDθ : typeDerivAlongAlloc v r θ = deriv (v (r.q θ)) θ := rfl
-  rw [hasDerivWithinAt_iff_tendsto_slope, Set.sdiff_singleton_eq_self (by simp), hDθ]
+  rw [hasDerivWithinAt_iff_tendsto_slope, Set.diff_singleton_eq_self (by simp), hDθ]
   -- LOWER BOUND: a slope of `v (q θ, ·)` at θ, so it tends to `D θ` by differentiability.
   have hdA : DifferentiableAt ℝ (v (r.q θ)) θ :=
     ((hdiff (r.q θ)) θ hθ0).differentiableAt (IsOpen.mem_nhds isOpen_Ioi hθ0)
