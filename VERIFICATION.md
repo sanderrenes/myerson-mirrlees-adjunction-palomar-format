@@ -13,7 +13,7 @@ Four small source edits, no change to any statement:
 | `MasterTheorem.lean` | `noncomputable instance TR_preservesColimits` / `QR_preservesLimits` → `theorem` | newer Lean rejects instances with arguments it cannot infer (`hD`, `hθ_pos`, …) |
 | `ProductDecomposition.lean` | `simpa using …` → `exact …` | `simpa` no longer closes the goal |
 
-Plus `lean-toolchain`, `lakefile.toml` (Mathlib rev), `lake-manifest.json`, and `README.md`. Not ported: the module system, and the nested `docbuild/` project (still on v4.32.0).
+Plus `lean-toolchain`, `lakefile.toml` (Mathlib rev), `lake-manifest.json`, and `README.md`. The nested `docbuild/` project is on v4.36.0 too (doc-gen4 v4.36.0; `cd docbuild && lake build MechDesigAdjointfunctor:docs` succeeds, 11,947 jobs). Not ported: the module system.
 Plain `lake build` (all targets) passes. It prints deprecation warnings only (`dif_pos`, `if_pos`, `if_neg`, `Set.diff_singleton_eq_self`), not fixed.
 
 ## The five questions
