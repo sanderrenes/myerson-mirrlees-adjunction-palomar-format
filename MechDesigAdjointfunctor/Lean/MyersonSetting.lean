@@ -1,9 +1,13 @@
-import MechDesigAdjointfunctor.Lean.Framework
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.IntegrationByParts
-import Mathlib.Analysis.Calculus.Deriv.Basic
-import Mathlib.MeasureTheory.Constructions.Pi
+module
+
+public import MechDesigAdjointfunctor.Lean.Framework
+public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
+public import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
+public import Mathlib.MeasureTheory.Integral.IntervalIntegral.IntegrationByParts
+public import Mathlib.Analysis.Calculus.Deriv.Basic
+public import Mathlib.MeasureTheory.Constructions.Pi
+
+@[expose] public section
 
 /-!
 # Stage 2: The Myerson Auction Setting
@@ -310,7 +314,7 @@ private lemma expAlloc₁_eq_linear (p x₁ : ℝ → ℝ → ℝ) (f₂ : ℝ �
     ∫ t₂ in a₂..b₂, (r * p u t₂ - x₁ u t₂) * f₂ t₂ := by
   simp only [expAlloc₁, expPayment₁]
   have hrp : IntervalIntegrable (fun t₂ => r * (p u t₂ * f₂ t₂)) volume a₂ b₂ := by
-    simpa [smul_eq_mul] using hint_p.smul r
+    exact hint_p.const_mul r
   have hmul : ∫ t₂ in a₂..b₂, r * (p u t₂ * f₂ t₂) =
       r * ∫ t₂ in a₂..b₂, p u t₂ * f₂ t₂ := by
     rw [show (fun t₂ => r * (p u t₂ * f₂ t₂)) = fun t₂ => r • (p u t₂ * f₂ t₂) from by

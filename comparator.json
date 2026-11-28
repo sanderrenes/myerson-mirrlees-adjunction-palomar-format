@@ -6,12 +6,21 @@
     "MechDesign.masterTheorem_isomorphism",
     "MechDesign.masterTheorem_transferInvariance",
     "MechDesign.masterTheorem_rentExtraction",
+    "MechDesign.productDecomposition",
     "MechDesign.revenueEquivalence",
-    "MechDesign.taxationPrinciple"
+    "MechDesign.taxationPrinciple",
+    "MechDesign.auction_winProb_mono",
+    "MechDesign.auction_payment_mono",
+    "MechDesign.auction_rent_mono",
+    "MechDesign.mirrlees_taxPaid_strictMono"
   ],
   "definition_names": [
     "MechDesign.adj_T_Q"
   ],
-  "permitted_axioms": ["propext", "Quot.sound", "Classical.choice"],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ],
   "enable_nanoda": true
 }

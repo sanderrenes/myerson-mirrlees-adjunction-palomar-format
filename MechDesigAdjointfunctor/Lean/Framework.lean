@@ -1,12 +1,16 @@
-import MechDesigAdjointfunctor.Lean.Linters
-import Mathlib.CategoryTheory.Adjunction.Basic
-import Mathlib.CategoryTheory.Limits.HasLimits
-import Mathlib.CategoryTheory.Limits.Preserves.Basic
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
-import Mathlib.Analysis.Calculus.Deriv.Basic
-import Mathlib.Analysis.Calculus.Deriv.Mul
-import Mathlib.Order.Monotone.Basic
-import Mathlib.Order.CompleteLattice.Basic
+module
+
+public import MechDesigAdjointfunctor.Lean.Linters
+public import Mathlib.CategoryTheory.Adjunction.Basic
+public import Mathlib.CategoryTheory.Limits.HasLimits
+public import Mathlib.CategoryTheory.Limits.Preserves.Basic
+public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
+public import Mathlib.Analysis.Calculus.Deriv.Basic
+public import Mathlib.Analysis.Calculus.Deriv.Mul
+public import Mathlib.Order.Monotone.Basic
+public import Mathlib.Order.CompleteLattice.Basic
+
+@[expose] public section
 
 /-!
 # Stage 1: Abstract Categorical Framework
@@ -81,9 +85,11 @@ structural, not cosmetic:
 * The normalisation `V(θ_min) = 0` cuts out the full subcategory `Mech₀` (`RegZeroRent`),
   on which the counit becomes invertible and `T ⊣ Q` upgrades to an adjoint equivalence
   `AllocR ≌ Mech₀` (`equivAllocMech₀`) — normalised regular mechanisms are, up to
-  isomorphism, their allocation rules.  That is the categorical/normalised packaging of
-  revenue equivalence; the elementary Taxation Principle of Hammond–Rochet is a separate,
-  IC-only statement about a single mechanism (`taxationPrinciple_impl`).
+  isomorphism, their allocation rules.  That is the categorical/normalised packaging of the
+  fibre structure of `Q`.  The two classical results are its two halves: the Taxation Principle
+  of Hammond–Rochet says the transfer is a function of the allocation (IC only,
+  `taxationPrinciple_impl`); revenue equivalence says the only freedom left is the rent
+  (envelope formula, Stage 4).
 
 So `Mech` is *not* the category of normalised mechanisms; `Mech₀` is. -/
 def IsIR {A : Type*} (v : A → ℝ → ℝ) (θ_min : ℝ) (m : Mechanism A) : Prop :=
@@ -209,8 +215,18 @@ a price list on quantities — and the direct mechanism is redundant.
 
 This is where it comes from, and it costs nothing but IC.  It is logically prior to everything
 in Stages 4–5: no envelope theorem, no single crossing, no differentiability, no integrability,
-no measure.  It is also *different in kind* from revenue equivalence, which compares two
-mechanisms; this compares two **types** inside one mechanism. -/
+no measure.  It compares two **types** inside one mechanism, whereas revenue equivalence
+compares two mechanisms.
+
+**Common source of the two classical results.**  Both are consequences of one structural fact
+about the forgetful functor `Q`.  For an IC mechanism the transfer is a *function of the
+allocation* (the taxation principle: `transfer_depends_only_on_alloc`, IC only), and the only
+freedom left is *one constant*, the rent (revenue equivalence: `surplus_split`, the envelope
+formula).  So the fibre `Q⁻¹(r)` is a ray indexed by rent `≥ 0`.  The adjunction `T ⊣ Q` is the
+categorical packaging of this structure: `T r` is the bottom of the ray, the counit removes the
+rent, and `AllocR ≌ Mech₀` says a normalised mechanism is its allocation.  It does not derive
+the structure — a Galois connection alone gives only `V_{TQm} ≤ V_m`; equality up to a constant
+is the envelope formula. -/
 
 /-- **Transfers depend on the type only through the allocation.**
 

@@ -1,6 +1,12 @@
 -- Re-export the full project for convenience.
-import MechDesigAdjointfunctor.Lean.Framework
-import MechDesigAdjointfunctor.Lean.MyersonSetting
-import MechDesigAdjointfunctor.Lean.MirrleesSetting
-import MechDesigAdjointfunctor.Lean.MasterTheorem
-import MechDesigAdjointfunctor.Lean.Corollaries
+module
+
+public import MechDesigAdjointfunctor.Lean.Framework
+public import MechDesigAdjointfunctor.Lean.MyersonSetting
+public import MechDesigAdjointfunctor.Lean.MirrleesSetting
+public import MechDesigAdjointfunctor.Lean.MasterTheorem
+public import MechDesigAdjointfunctor.Lean.Corollaries
+public import MechDesigAdjointfunctor.Lean.ProductDecomposition
+public import MechDesigAdjointfunctor.Lean.MonotoneResults
+
+@[expose] public section

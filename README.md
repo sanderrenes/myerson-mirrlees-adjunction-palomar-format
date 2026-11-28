@@ -1,20 +1,21 @@
 # MechDesigAdjointfunctor
 
-A Lean 4 / Mathlib formalization of the **categorical unification of Myerson's
-Revenue Equivalence Theorem and the Mirrlees Taxation Principle** as instances of
-a single Master Theorem about the adjunction `T ⊣ Q` between a category of
-allocation rules and a category of incentive-compatible mechanisms.
+A Lean 4 / Mathlib formalization of the **fibre structure of the forgetful functor
+`Q`** from incentive-compatible mechanisms to allocation rules, and of the adjunction
+`T ⊣ Q` that packages it. The structure has two halves: the transfer is a function of
+the allocation (the **Taxation Principle** of Hammond–Rochet) and only the rent is free
+(Myerson's **Revenue Equivalence Theorem**, in the auction and Mirrlees settings).
 
 - **Namespace:** `MechDesign`
-- **Toolchain:** `leanprover/lean4:v4.30.0`
-- **Mathlib:** pinned at `c5ea00351c28e24afc9f0f84379aa41082b1188f` (see `lakefile.toml` / `lake-manifest.json`)
+- **Toolchain:** `leanprover/lean4:v4.35.0` (ported from v4.30.0 on 2026-11-25 to v4.36.0; moved back to v4.35.0 on 2026-11-27, the newest version Palomar's verifier supports)
+- **Mathlib:** pinned at `56a005855ea17e0b0958f73ec801ae140b0a1679`, the `v4.35.0` tag (see `lakefile.toml` / `lake-manifest.json`)
 - **Permitted axioms:** `propext`, `Quot.sound`, `Classical.choice`
 - **License:** Apache-2.0
 
 This repository follows the [Palomar](https://palomar-registry.org/) submission
 layout: a small human-auditable statement surface (`Challenge.lean`), a proof
 surface with identical signatures (`Solution.lean`), and the full development in
-`MechDesigAdjointfunctor/`. `comparator.json` names the seven declarations that
+`MechDesigAdjointfunctor/`. `comparator.json` names the eight declarations that
 Comparator checks are stated identically in both surfaces and proved with only
 the permitted axioms.
 
@@ -34,11 +35,13 @@ MechDesigAdjointfunctor/
     ├── MirrleesSetting.lean            taxation environment: v(y,θ) = θ·h(y) − g(y/θ)
     ├── MasterTheorem.lean              Stage 4: envelope theorem, regular subcategories,
     │                                   T ⊣ Q, the three parts of the Master Theorem
-    └── Corollaries.lean                Revenue Equivalence and the Mirrlees instance,
-                                        vacuity theorems, the posted-price witness
+    ├── Corollaries.lean                Revenue Equivalence and the Mirrlees instance,
+    │                                   vacuity theorems, the posted-price witness
+    └── ProductDecomposition.lean       MechR ≌ AllocR × ℝ≥0 (the fibre as a rent ray), with
+                                        revenue equivalence and T ⊣ Q read off it
 
-Challenge.lean                          7 advertised statements, each with `sorry`
-Solution.lean                           same 7 signatures, each delegated to a `_impl`
+Challenge.lean                          12 advertised statements, each with `sorry`
+Solution.lean                           same 12 signatures, each delegated to a proof
 comparator.json                         declarations Comparator must match
 formalization.yaml                      registry metadata
 scripts/                                verify-comparator.sh, validate-formalization.rb, landrun-wrapper.sh
@@ -96,12 +99,13 @@ flowchart TD
 | Environments | `MyersonSetting`, `MirrleesSetting` | the two value functions and their calculus facts; both allocation spaces are `ℝ` |
 | Stage 4 | `MasterTheorem` | the envelope theorem (`surplus_split`), the *regular* subcategories `AllocR` / `MechR` / `Mech₀`, the adjunction `TR ⊣ QR`, and Master Theorem 4.5 (i)–(iii) |
 | Corollaries | `Corollaries` | `revenueEquivalence_impl` and `mirrlees_transferInvariance_impl` (one call, two value functions), plus `no_uniform_lipschitz` / `no_uniform_hW` and the posted-price witness object |
+| Decomposition | `ProductDecomposition` | `equivProd : MechR ≌ AllocR × ℝ≥0` via `m ↦ (Q m, rent m)`; `Q` is the first projection and `T r = (r, 0)`. Advertised as result ⟨8⟩ (`productDecomposition`: the full and essentially-surjective halves, stated without the new definitions). Shows why `equivAllocMech₀` is only the `rent = 0` slice: `TshiftObj` builds a mechanism for every rent `c ≥ 0`, and `productFunctor_full` gives the product order |
 
 ---
 
-## The seven advertised results
+## The twelve advertised results
 
-All seven are stated in [`Challenge.lean`](Challenge.lean) with full docstrings and
+All twelve are stated in [`Challenge.lean`](Challenge.lean) with full docstrings and
 a `sorry`, and re-proved in [`Solution.lean`](Solution.lean) by delegating to the
 corresponding `*_impl` declaration.
 
@@ -114,6 +118,13 @@ corresponding `*_impl` declaration.
 | 5 | `MechDesign.revenueEquivalence` | `theorem` | Myerson (1981) | `Corollaries.revenueEquivalence_impl` |
 | 6 | `MechDesign.taxationPrinciple` | `theorem` | Mirrlees (1971); Hammond (1979); Rochet (1985) | `Framework.taxationPrinciple_impl` |
 | 7 | `MechDesign.masterTheorem_rentExtraction` | `theorem` | Corollary 4.4 (cross-fiber) | `MasterTheorem.masterTheorem_rentExtraction_impl` |
+| 8 | `MechDesign.productDecomposition` | `theorem` | `MechR ≌ AllocR × ℝ≥0` (full + essentially surjective) | `ProductDecomposition.productDecomposition_impl` |
+| 9 | `MechDesign.auction_winProb_mono` | `theorem` | Myerson (1981): winning probability non-decreasing | `MonotoneResults.auction_winProb_mono` |
+| 10 | `MechDesign.auction_payment_mono` | `theorem` | expected payment non-decreasing (`θ_min ≥ 0`) | `MonotoneResults.auction_payment_mono` |
+| 11 | `MechDesign.auction_rent_mono` | `theorem` | rent non-decreasing (allocations `≥ 0`) | `MonotoneResults.auction_rent_mono` |
+| 12 | `MechDesign.mirrlees_taxPaid_strictMono` | `theorem` | tax paid strictly increasing (`T′ > 0`) | `MonotoneResults.mirrlees_taxPaid_strictMono` |
+
+Results 9–12 are elementary inequalities and use no category theory.
 
 Result 7 is the one advertised statement whose proof *consumes* the adjunction
 ⟨1⟩: `T(r)` leaves the agent the least surplus — extracts the most revenue — at
@@ -182,6 +193,15 @@ flowchart TD
   `v` and the term witnessing that `v` is differentiable in the type. Both
   allocation spaces are literally `ℝ`.
 
+- **Common source of the two classical results.** The Taxation Principle ⟨6⟩ says the
+  transfer is a function of the allocation (IC only, `transfer_depends_only_on_alloc`).
+  Revenue equivalence ⟨5⟩ says the only freedom left is one constant, the rent
+  (`surplus_split`). Together: the fibre `Q⁻¹(r)` is a ray indexed by rent `≥ 0`. The
+  adjunction `T ⊣ Q` packages this (`T r` is the bottom of the ray, the counit removes the
+  rent, `AllocR ≌ Mech₀` says a normalised mechanism is its allocation) but does not derive
+  it: a Galois connection alone gives only `V_{TQm} ≤ V_m`, and equality up to a constant is
+  the envelope formula.
+
 - **The adjunction ⟨1⟩ is structure, not a lemma the corollaries consume.**
   Neither ⟨5⟩ nor ⟨6⟩ uses `adj_T_Q`; the categorical fact they do use is that an
   iso in **MechR** forces equal transfers. `adj_T_Q` is stated on the *regular*
@@ -217,9 +237,10 @@ is fully faithful. The counit `ε_m : T(Q m) ⟶ m` strips the rent, and
 `isIso_counit_iff_zeroRent` proves it is invertible **exactly** when
 `V_m(θ_min) = 0`. Corestricted to zero rent, `T` becomes an equivalence
 `equivAllocMech₀ : AllocR ≌ Mech₀` — a normalised regular mechanism *is* its
-allocation rule. That equivalence is revenue equivalence in its strongest form
-(it needs regularity and the whole of Stage 4); it is **not** the elementary
-`taxationPrinciple` ⟨6⟩, which is a separate one-object statement from IC alone.
+allocation rule. That equivalence is the fibre structure in its strongest form: it
+carries both halves, "the transfer is a function of the allocation" (`taxationPrinciple`
+⟨6⟩, one object, IC alone) and "only the rent is free" (revenue equivalence ⟨5⟩), and so
+it needs regularity and the whole of Stage 4.
 
 ### The taxation principle in category theory
 
@@ -284,7 +305,7 @@ revenue-maximal, point of the whole order-filter above `r`: it extracts the most
 revenue at every type among admissible mechanisms with allocation `≥ r`. This is
 `Tmech_surplus_le_of_alloc_le` (`MasterTheorem.lean`), proved by one application
 of `Adjunction.homEquiv` — advertised as result ⟨7⟩,
-`masterTheorem_rentExtraction`, the only one of the seven whose proof consumes
+`masterTheorem_rentExtraction`, the only one of the eight whose proof consumes
 `adj_T_Q`. `envelope_transfer_le_via_adj` is the transfer form.
 Fiberwise initiality (`T_initial`, `Tmech_surplus_le`) is the `q_m = r.q` special
 case. The counit's direction — `ε_m : T(Q m) ⟶ m` and not the reverse, so `T` is
@@ -324,6 +345,19 @@ Optional documentation build:
 
 ---
 
+## Verification (2026-11-25, Lean v4.36.0; not yet repeated on v4.35.0)
+
+> **Superseded:** this section describes the run on Lean v4.36.0. The repository is now on v4.35.0 and builds there (`lake build`, all targets), but `lake check` and `lake comparator` have not been rerun on it.
+
+Run with [check-lean-claim](https://github.com/AdemBenAbdallah/check-lean-claim) tools (`lake check`, `lake comparator`) in Lean's sandbox. Full table: [`VERIFICATION.md`](VERIFICATION.md).
+
+- `lake build` of all targets passes.
+- `lake check` on the proof development and `Solution`: axioms are only `propext`, `Quot.sound`, `Classical.choice`.
+- `lake comparator --paranoid` on the twelve advertised statements: accepted by the Lean kernel, the paranoid Lean checker, lean4lean, nanoda, con-leche and con-ron. Each statement also passes alone (closure about 36,500 declarations; the taxation principle alone: 6,479).
+- Known limits: `lake check` cannot take `Challenge` as a default target (it has `sorry` and the same names as `Solution`), so `check.sh` as shipped reports question 1 as FAIL for that reason. nanoda overflows its stack on the whole-project export (404,525 declarations), but accepts the statement closures. `Challenge.lean` was written by the author of the proofs, so the comparison checks the match and not the independence of the statements.
+
+---
+
 ## Relation to `MechDesigAdjointfunctor.lean`
 
 This repository is not just a repackaging of the development in `MechDesigAdjointfunctor.lean`. As of 2026-11-01 it is ahead of it in content
@@ -332,8 +366,9 @@ and behind it in Lean version:
 - It states the adjunction `T ⊣ Q` on the regular subcategories `AllocR` / `MechR`. The version on all of **Mech** (the one in the other
   repository) carries hypotheses that cannot hold for Myerson (`Corollaries.no_uniform_lipschitz`, `Corollaries.no_uniform_hW`), so it is vacuous
   there. Checked 2026-11-01: this commit builds on v4.30 and those two theorems use only `propext`, `Classical.choice`, `Quot.sound`.
-- The other repository has the Lean v4.35 and module-system port, and fixed descriptions of the adjunction direction. This one has not been
-  ported. Porting this repository's regular-subcategory results there is open in that repository's `TODO.md` (D22).
+- The other repository has the Lean v4.35 and module-system port, and fixed descriptions of the adjunction direction. This one was ported to
+  Lean v4.36.0 on 2026-11-25, moved back to v4.35.0 on 2026-11-27, and now uses the module system as well (every `.lean` file has `module`, `public import` and
+  `@[expose] public section`; the linter file is a `public meta section`). Porting this repository's regular-subcategory results there is open in that repository's `TODO.md` (D22).
 - This repository has never been submitted to Palomar (`formalization.yaml` still holds `TEMPLATE` values).
 
 ## Submission

@@ -1,5 +1,10 @@
-import Lean
-import Batteries.Tactic.Lint
+module
+
+public import Lean
+public import Batteries.Tactic.Lint
+public meta import Lean.Linter.Basic
+
+public meta section
 
 /-!
 # Project linters: statements that say nothing
@@ -32,7 +37,7 @@ register_option linter.trueStatement : Bool := {
 }
 
 /-- The conclusion of a (possibly dependent) statement: strip every leading `∀`. -/
-private partial def conclusionOf : Expr → Expr
+partial def conclusionOf : Expr → Expr
   | .forallE _ _ body _ => conclusionOf body
   | e => e
 
@@ -88,7 +93,7 @@ initialize registerBuiltinAttribute {
 }
 
 /-- Every theorem that some declaration is a `@[witness_for]`. -/
-private def witnessedTheorems (env : Environment) : NameSet :=
+def witnessedTheorems (env : Environment) : NameSet :=
   (witnessExt.getState env).foldl (fun s _ tgt => s.insert tgt) {}
 
 /-- **Theorems that asked for a witness and have none.**
