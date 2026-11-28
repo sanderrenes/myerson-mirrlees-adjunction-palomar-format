@@ -113,7 +113,14 @@ jobs:
           MATHLIB_NO_CACHE_ON_UPDATE: "1"
           DISABLE_EQUATIONS: "1"
           DOCGEN_SRC: github
-        run: lake build MechDesigAdjointfunctor:docs
+        run: |
+          set -o pipefail
+          lake build MechDesigAdjointfunctor:docs 2>&1 | tee "$RUNNER_TEMP/docs-build.log" || {
+            status=$?
+            # Logs of this repository are admin-only; surface the tail as an annotation.
+            tail -n 25 "$RUNNER_TEMP/docs-build.log" | head -c 3500 | sed ':a;N;$!ba;s/%/%25/g;s/\r/%0D/g;s/\n/%0A/g' | sed 's/^/::error title=docs build failed::/'
+            exit "$status"
+          }
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: api-documentation
